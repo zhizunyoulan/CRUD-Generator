@@ -1,0 +1,67 @@
+
+export type ${mainModel.modelName} = {
+#foreach ($field in ${mainModel.fields})## A
+#if($field.selectProperties.propAlias != $null)## A-1
+#set( $propAlias = ${field.selectProperties.propAlias} )
+#else## A-1
+#set( $propAlias = ${field.property} )
+#end## A-1
+  $propAlias: $myTool.getTsTypeForJavaType($field.javaType)
+#end## A
+}
+
+#set($functions = [])
+#if($readDefinition != $null)## A
+#if($functions.add(${readDefinition.functionName}))#end
+#if($readDefinition.singleResult && $requestModelClass == $null)## A-1
+#set($pathParamFields = [])
+#foreach($requestParamField in $readDefinition.requestParamFields)## A-1-1
+#if($requestParamField.unique && $requestParamField.conditionProperties.required)## A-1-1-1
+#if($pathParamFields.add(${requestParamField}))#end
+#end## A-1-1-1
+#end## A-1-1
+function ${readDefinition.functionName}(#foreach($pathParamField in $pathParamFields)${pathParamField.property}: $myTool.getTsTypeForJavaType($pathParamField.javaType)#if( !$foreach.last ),#end#end) {
+  return {
+    url: `/${mainModel.kebabCaseModelName}/#foreach($pathParamField in $pathParamFields)${${pathParamField.property}}#if( !$foreach.last )/#end#end`,
+    method: 'GET',
+  }
+}
+#else## A-1
+const ${readDefinition.functionName} = {
+  url: '/${mainModel.kebabCaseModelName}',
+  method: 'GET',
+}
+#end## A-1
+
+#end## A
+#if($createDefinition != $null)## A
+const ${createDefinition.functionName} = {
+  url: '/${mainModel.kebabCaseModelName}',
+  method: 'POST',
+}
+#if($functions.add(${createDefinition.functionName}))#end
+
+#end## A
+#if($updateDefinition != $null)## A
+const ${updateDefinition.functionName} = {
+  url: '/${mainModel.kebabCaseModelName}',
+  method: 'PUT',
+}
+#if($functions.add(${updateDefinition.functionName}))#end
+
+#end## A
+#if($deleteDefinition != $null)## A
+function ${deleteDefinition.functionName}(#foreach($primaryKeyField in $mainModel.primaryKeyFields)${primaryKeyField.property}: $myTool.getTsTypeForJavaType($primaryKeyField.javaType)#if( !$foreach.last ),#end#end) {
+  return {
+    url: `/${mainModel.kebabCaseModelName}/#foreach($primaryKeyField in $mainModel.primaryKeyFields)${${primaryKeyField.property}}#if( !$foreach.last )/#end#end`,
+    method: 'DELETE',
+  }
+}
+#if($functions.add(${deleteDefinition.functionName}))#end
+
+#end## A
+export default {
+#foreach ($functionName in $functions)## A
+  ${functionName}#if( !$foreach.last ),#end
+#end## A
+};

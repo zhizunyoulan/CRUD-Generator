@@ -1,0 +1,46 @@
+package ${requestModelClass.packageName};
+
+import com.baomidou.mybatisplus.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+#if($requestModelClass.superClass != $null)## A
+import ${requestModelClass.superClass.qualifiedName};
+#end## A
+#foreach ($importType in $requestModelClass.dynamicImports)## A
+import ${importType};
+#end## A
+
+@ApiModel(description = "${mainModel.description} RequestModel")
+public class ${requestModelClass.simpleName} #if($requestModelClass.superClass != $null)extends ${requestModelClass.superClass.simpleName} #end{
+
+#foreach ($field in $requestModelClass.fields)## A
+#if($requestModelClass.superClass == $null || !${requestModelClass.superClass.containsProperty($field.property)})## A-1
+    @ApiModelProperty(value = "$field.label")
+#if(${field.jdbcType} == 'DATE' || ${field.jdbcType} == 'TIMESTAMP' || ${field.jdbcType} == 'TIME')## A-1-1
+#if($field.format == "DATE")## A-1-1-1
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+#elseif($field.format == "TIME")## A-1-1-1
+    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
+#else## A-1-1-1
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+#end## A-1-1-1
+#end## A-1-1
+    private #getJavaTypeSimpleName($field.javaType) $field.property;
+
+#end## A-1
+#end## A
+
+#foreach ($field in $requestModelClass.fields)## A
+#if($requestModelClass.superClass == $null || !${requestModelClass.superClass.containsProperty($field.property)})## A-1
+    public #getJavaTypeSimpleName($field.javaType) #getFieldGetterName($field)() {
+        return this.$field.property;
+    }
+
+    public void #getFieldSetterName($field)(#getJavaTypeSimpleName($field.javaType) $field.property) {
+        this.$field.property = $field.property;
+    }
+
+#end## A-1
+#end## A
+}

@@ -1,0 +1,48 @@
+package ${currentClass.packageName};
+
+import ${mainModelClass.qualifiedName};
+#if(${requestModelClass.simpleName} != ${mainModelClass.simpleName})## A
+#if($requestModelClass != $null)## A-1
+import ${requestModelClass.qualifiedName};
+#end## A-1
+#if(${resultModelClass.simpleName} != ${mainModelClass.simpleName} && ${resultModelClass.simpleName} != ${requestModelClass.simpleName})## A-2
+import ${resultModelClass.qualifiedName};
+#end## A-2
+#elseif(${resultModelClass.simpleName} != ${mainModelClass.simpleName})## A
+import ${resultModelClass.qualifiedName};
+#end## A
+import org.apache.ibatis.annotations.Param;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+#foreach ($importType in $currentClass.dynamicImports)## A
+import ${importType};
+#end## A
+import java.util.List;
+
+/**
+* @author $author
+* @description Mapper for【${mainModel.tableName}(${mainModel.description})】
+* @Entity ${mainModelClass.qualifiedName}
+*/
+public interface ${currentClass.simpleName} extends BaseMapper<${mainModelClass.simpleName}> {
+
+#if($readDefinition != $null)## A
+#if(!$readDefinition.singleResult)## A-1
+#if($requestModelClass != $null)## A-1-1
+    List<${resultModelClass.simpleName}> ${readDefinition.functionName}(${requestModelClass.simpleName} #toLowerCamelCase(${requestModelClass.simpleName}));
+#else## A-1-1
+    List<${resultModelClass.simpleName}> ${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)@Param("$requestParamField.property") #getJavaTypeSimpleName(${requestParamField.javaType}) $requestParamField.property#{if}( !$foreach.last ), #end#end);
+#end## A-1-1
+#else## A-1
+#if($requestModelClass != $null)## A-1-1
+    ${resultModelClass.simpleName} ${readDefinition.functionName}(${requestModelClass.simpleName} #toLowerCamelCase(${requestModelClass.simpleName}));
+#else## A-1-1
+    ${resultModelClass.simpleName} ${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)@Param("$requestParamField.property") #getJavaTypeSimpleName(${requestParamField.javaType}) $requestParamField.property#{if}( !$foreach.last ), #end#end);
+#end## A-1-1
+#end## A-1
+
+#end## A
+#if($deleteDefinition != $null && $mainModel.primaryKeyFields.size() > 1)## A
+    void ${deleteDefinition.functionName}(#foreach($primaryKeyField in $mainModel.primaryKeyFields)@Param("${primaryKeyField.property}") #getJavaTypeSimpleName(${primaryKeyField.javaType}) $primaryKeyField.property#if( !$foreach.last ), #end#end);
+
+#end## A
+}

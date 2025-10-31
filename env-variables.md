@@ -28,6 +28,7 @@ public class $mainModelClass.simpleNameController {
 | `mainModel` | [`ModelDefinition`](#31-核心模型对象-modeldefinition) | **No** | **主模型**的核心元数据定义 |
 | `mainModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | 主模型对应的 Java 类信息 |
 | `mapperClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | MyBatis Mapper 接口类信息 |
+| `repositoryClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | JPA Repository 接口类信息 |
 | `serviceClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | Service 接口类信息 |
 | `serviceImplClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | Service 实现类信息 |
 | `requestModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **Yes** | 查询参数类信息。**若为空，表示参数为分散字段** |
@@ -109,21 +110,18 @@ public class $mainModelClass.simpleNameController {
 
 **字段:**
 *   `functionName` (String): 功能的核心名称 (e.g., `getUserList`).
-*   `scope` (Enum): 查询范围 (`'list'` 或 `'one'`).
-*   `subUrl` (String): Controller 接口URL的一部分 (e.g., `"/list"`).
+*   `singleResult` (Boolean): 查询范围 (`'list'` 或 `'one'`), `true`为查询单条，`false`为查询列表.
+*   `orderByProp` (String): 排序字段名（可空）.
+*   `orderProp` (String): 排序顺序（可空）.
 *   `description` (String): 功能的描述信息.
 *   `selectFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 需要检出的**所有**字段.
 *   `resultFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 最终结果实体中包含的字段.
 *   `conditionFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 需要用到的所有条件字段.
-*   `drillDowns` (List<[`DrillDown`](#351-drilldown-钻取查询)>): 所有钻取子查询列表.
+*   `requestParamFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 需要用到的所有条件字段（当不使用实体接收参数时）.
 *   `resultFieldsTree` (Object): 检出字段的树形结构，用于生成嵌套 `resultMap`.
 *   `recursiveNestedField` ([`RecursiveNestedField`](#352-recursivenestedfield-递归嵌套)): 递归嵌套字段配置（如树形结构）.
-*   `allApis` (List<[`ApiInfo`](#353-apiinfo-api信息)>): 所有API的描述列表 (主查询 + 钻取查询).
-*   `allSelects` (List<[`SelectDefinition`](#354-selectdefinition-查询定义)>): 所有SQL查询片段的描述列表.
+*   `select` ([`SelectDefinition`](#354-selectdefinition-查询定义)): SQL查询片段的描述.
 
-**方法:**
-*   `hasDrillDownType(String drillDownType)` (Boolean): 判断是否存在指定类型的钻取查询.
-*   `getFirstDrillDownOfType(String drillDownType)` ([`DrillDown`](#351-drilldown-钻取查询)): 获取第一个指定类型的钻取查询.
 
 #### 3.4.2 `CreateDefinition` (创建功能)
 **描述**: 定义了【创建】功能的配置。
@@ -147,14 +145,7 @@ public class $mainModelClass.simpleNameController {
 
 ### 3.5 关联类型详解
 
-#### 3.5.1 `DrillDown` (钻取查询)
-**描述**: 定义了一个钻取查询（子查询）的配置。**继承或包含了 [`ReadDefinition`](#341-readdefinition-查询功能) 的所有字段**。
-**可用位置:** `$readDefinition.drillDowns`
-**字段:**
-*   `drillDownType` (String): 钻取类型。可选值: `'Pop-up'` (弹窗), `'Expand'` (展开行), `'NewPage'` (打开新页).
-**注意**: 继承的 `scope`, `drillDowns`, `resultFieldsTree`, `recursiveNestedField` 字段在此无意义。
-
-#### 3.5.2 `RecursiveNestedField` (递归嵌套)
+#### 3.5.1 `RecursiveNestedField` (递归嵌套)
 **描述**: 定义了递归嵌套查询的特殊字段配置。
 **可用位置:** `$readDefinition.recursiveNestedField`
 **字段:**
@@ -162,34 +153,27 @@ public class $mainModelClass.simpleNameController {
 *   `foreignProperty` (String): 指向父节点ID的外键属性名 (e.g., `parentId`).
 *   `lazy` (Boolean): 是否对递归子集采用懒加载.
 
-#### 3.5.3 `ApiInfo` (API信息)
-**描述**: 定义一个API接口的基本信息。
-**可用位置:** `$readDefinition.allApis`
-**字段:**
-*   `functionName` (String): 对应的功能/方法名称.
-*   `subUrl` (String): API的路径片段.
-*   `description` (String): API的功能描述.
-
-#### 3.5.4 `SelectDefinition` (查询定义)
+#### 3.5.2 `SelectDefinition` (查询定义)
 **描述**: 定义了一个SQL查询片段的核心要素。
 **可用位置:** `$readDefinition.allSelects`
 **字段:**
 *   `functionName` (String): 查询片段对应的方法名/SQL ID.
 *   `selectFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该查询片段需要检出的字段列表.
 *   `conditionFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该查询片段需要的条件字段列表.
-*   `tableAssociations` (List<[`TableAssociation`](#355-tableassociation-表关联)>): 该查询片段需要用到的表关联关系列表.
+*   `tableJoins` (List<[`TableJoin`](#353-tablejoin-表关联)>): 该查询片段需要用到的表关联关系列表.
 
-#### 3.5.5 `TableAssociation` (表关联)
+#### 3.5.3 `TableJoin` (表关联)
 **描述**: 定义了两个数据库表之间的关联关系。
-**可用位置:** `$selectDefinition.tableAssociations`
+**可用位置:** `$selectDefinition.tableJoins`
 **字段:**
-*   `relativeTableName` (String): 被关联的表名.
-*   `relativeTableAlias` (String): 被关联表的别名.
+*   `tableName` (String): **当前表**的表名.
 *   `tableAlias` (String): **当前表**的别名.
-*   `assKey` (String): **当前表**中用于关联的列名.
-*   `relativeAssKey` (String): **被关联表**中用于关联的列名.
+*   `columnName` (String): **当前表**中用于关联的列名.
+*   `relatedTableName` (String): 被关联的表名.
+*   `relatedTableAlias` (String): 被关联表的别名.
+*   `relatedColumnName` (String): **被关联表**中用于关联的列名.
 
-#### 3.5.6 `SelectProperties` (检索属性)
+#### 3.5.4 `SelectProperties` (检索属性)
 **描述**: 配置字段在数据检索时的行为。
 **可用位置:** `$fieldDefinition.selectProperties`
 **字段:**
@@ -199,7 +183,7 @@ public class $mainModelClass.simpleNameController {
 *   `visible` (Boolean): 字段是否在前端显示.
 *   `lazy` (Boolean): 是否懒加载.
 
-#### 3.5.7 `ConditionProperties` (条件属性)
+#### 3.5.5 `ConditionProperties` (条件属性)
 **描述**: 配置字段作为查询条件时的行为。
 **可用位置:** `$fieldDefinition.conditionProperties`
 **字段:**
@@ -209,7 +193,7 @@ public class $mainModelClass.simpleNameController {
 *   `compareType` (String): SQL 比较操作符 (e.g., `'='`, `'LIKE'`, `'>'`).
 *   `required` (Boolean): 条件字段的值是否必须非空.
 
-#### 3.5.8 `FormProperties` (表单属性)
+#### 3.5.6 `FormProperties` (表单属性)
 **描述**: 配置字段在前端表单中的行为。
 **可用位置:** `$fieldDefinition.formProperties`
 **字段:**
@@ -224,7 +208,9 @@ public class $mainModelClass.simpleNameController {
 
 **方法:**
 *   `getFieldGetterName(`[`FieldDefinition`](#32-字段定义对象-fielddefinition)` field)` (String): 生成 Getter 方法名 (e.g., `getUserName`).
+*   `getFieldSetterName(`[`FieldDefinition`](#32-字段定义对象-fielddefinition)` field)` (String): 生成 Setter 方法名 (e.g., `setUserName`).
 *   `toUpperCamelCase(String str)` (String): 转换为大驼峰格式 (e.g., `userName` -> `UserName`).
+*   `toLowerCamelCase(String str)` (String): 转换为小驼峰格式 (e.g., `UserName` -> `userName`).
 *   `getJavaTypeSimpleName(String javaType, boolean withGenerics)` (String): 获取Java类型简称.
 *   `getAliasOrProperty(`[`FieldDefinition`](#32-字段定义对象-fielddefinition)` field)` (String): 获取字段别名或属性名.
 *   `getTsTypeForJavaType(String javaType)` (String): 获取Java类型对应的TS类型.
@@ -233,7 +219,9 @@ public class $mainModelClass.simpleNameController {
 **Velocity 宏:**
 *   `#getTsType($javaType)`
 *   `#getFieldGetterName($field)`
+*   `#getFieldSetterName($field)`
 *   `#toUpperCamelCase($str)`
+*   `#toLowerCamelCase($str)`
 *   `#getAliasOrProperty($field)`
 *   `#getJavaTypeSimpleName($javaType)`
 *   `#getJavaTypeSimpleName($javaType, $withGenerics)`
@@ -311,4 +299,4 @@ public interface $serviceClass.simpleName {
 }
 ```
 ------
-回到[上一页](./code-gen.md)
+回到[上一页](./README.md)

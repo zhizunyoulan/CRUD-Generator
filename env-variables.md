@@ -1,222 +1,220 @@
-# 代码模板环境变量
+# Code Template Environment Variables
 
-## 一、概述
+## 1. Overview
 
-本文档旨在帮助开发人员理解和使用内置于代码生成模板中的所有预定义环境变量。这些变量由模板引擎自动注入，可在 `.vm` 模板文件中直接使用，用于生成基于 Spring + MyBatis + 前端框架的全栈 CRUD 代码。
+This document aims to help developers understand and use all predefined environment variables built into the code generation templates. These variables are automatically injected by the template engine and can be used directly in `.vm` template files to generate full-stack CRUD code based on Spring + MyBatis + Frontend frameworks.
 
-### 1.1 设计哲学
-本设计基于**主模型（Main Model）**驱动，支持**多模型关联**，可生成完整的增删改查(CRUD)、导入、导出功能代码。通过一套丰富的元数据对象，为模板提供了极大的灵活性，能够处理简单表单到复杂嵌套查询等各种场景。
+### 1.1 Design Philosophy
+This design is driven by a **Main Model**, supports **multi-model associations**, and can generate complete CRUD, import, and export functional code. Through a rich set of metadata objects, it provides great flexibility for templates, capable of handling various scenarios from simple forms to complex nested queries.
 
-### 1.2 如何使用
-在 Velocity 模板中，通过 `$` 加变量名的方式引用这些变量。
-**示例：**
+### 1.2 How to Use
+In Velocity templates, reference these variables using `$` followed by the variable name.
+**Example:**
 ```velocity
 package $mainModelClass.packageName;
 
 @RestController
 @RequestMapping("/$mainModel.kebabCaseModelName")
-public class $mainModelClass.simpleNameController {
+public class $mainModelClass.simpleName Controller {
     @Autowired
     private $serviceClass.simpleName $serviceClass.camelCaseModelName;
 }
 ```
 
-## 二、环境变量总览
+## 2. Environment Variables Overview
 
-| 变量名 | 类型 | 可空性 | 简介 |
+| Variable Name | Type | Nullable | Description |
 | :--- | :--- | :--- | :--- |
-| `mainModel` | [`ModelDefinition`](#31-核心模型对象-modeldefinition) | **No** | **主模型**的核心元数据定义 |
-| `mainModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | 主模型对应的 Java 类信息 |
-| `mapperClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | MyBatis Mapper 接口类信息 |
-| `repositoryClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | JPA Repository 接口类信息 |
-| `serviceClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | Service 接口类信息 |
-| `serviceImplClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | Service 实现类信息 |
-| `requestModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **Yes** | 查询参数类信息。**若为空，表示参数为分散字段** |
-| `resultModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | 查询结果类信息 |
-| `readDefinition` | [`ReadDefinition`](#341-readdefinition-查询功能) | Yes | **【查询】**功能定义 |
-| `createDefinition` | [`CreateDefinition`](#342-createdefinition-创建功能) | Yes | **【创建】**功能定义 |
-| `updateDefinition` | [`UpdateDefinition`](#343-updatedefinition-修改功能) | Yes | **【修改】**功能定义 |
-| `deleteDefinition` | [`DeleteDefinition`](#344-deletedefinition-删除功能) | Yes | **【删除】**功能定义 |
-| `currentClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **Yes** | **当前模板**对应的 Java 类信息 (**仅后端 Java 类模板中不为空**) |
-| `currentModel` | [`ModelDefinition`](#31-核心模型对象-modeldefinition) | **No** | **当前模板**对应的模型信息 (Model/Entity 模板可用) |
-| `currentModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | **当前模板**对应的模型 Java 类信息 (Model/Entity 模板可用) |
-| `author` | `String` | No | 当前操作系统用户名，用于代码注释署名 |
-| `module` | `String` | No | 当前功能所属模块名 |
-| `groupId` | `String` | No | Maven/Gradle 的 GroupId |
-| `myTool` | [`MyTool`](#36-工具函数-mytool) | No | 内置工具函数集 |
+| `mainModel` | [`ModelDefinition`](#31-core-model-object-modeldefinition) | **No** | Core metadata definition for the **Main Model**. |
+| `mainModelClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | Java class information corresponding to the main model. |
+| `mapperClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | MyBatis Mapper interface class information. |
+| `repositoryClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | JPA Repository interface class information. |
+| `serviceClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | Service interface class information. |
+| `serviceImplClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | Service implementation class information. |
+| `requestModelClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **Yes** | Query parameter class information. **If null, parameters are scattered fields**. |
+| `resultModelClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | Query result class information. |
+| `readDefinition` | [`ReadDefinition`](#341-readdefinition-query-function) | Yes | **【Query】** function definition. |
+| `createDefinition` | [`CreateDefinition`](#342-createdefinition-create-function) | Yes | **【Create】** function definition. |
+| `updateDefinition` | [`UpdateDefinition`](#343-updatedefinition-update-function) | Yes | **【Update】** function definition. |
+| `deleteDefinition` | [`DeleteDefinition`](#344-deletedefinition-delete-function) | Yes | **【Delete】** function definition. |
+| `currentClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **Yes** | Java class information for the **current template** (**Non-null only in backend Java class templates**). |
+| `currentModel` | [`ModelDefinition`](#31-core-model-object-modeldefinition) | **No** | Model information for the **current template** (Available in Model/Entity templates). |
+| `currentModelClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | Model Java class information for the **current template** (Available in Model/Entity templates). |
+| `author` | `String` | No | Current OS username, used for code comment attribution. |
+| `module` | `String` | No | Module name to which the current function belongs. |
+| `groupId` | `String` | No | Maven/Gradle GroupId. |
+| `myTool` | [`MyTool`](#36-utility-functions-mytool) | No | Built-in utility function collection. |
 
-## 三、变量详解
+## 3. Variable Details
 
-### 3.1 核心模型对象 (`ModelDefinition`)
+### 3.1 Core Model Object (`ModelDefinition`)
 
-**描述**: 定义了数据模型的核心元数据，包括其名称、数据库映射信息、字段列表和主键信息。
-**可用实例:** `$mainModel`, `$currentModel`
+**Description**: Defines the core metadata of a data model, including its name, database mapping information, field list, and primary key information.
+**Available Instances:** `$mainModel`, `$currentModel`
 
-**字段:**
-*   `modelName` (String): 模型类的简单名称 (e.g., `UserDept`).
-*   `kebabCaseModelName` (String): 模型名的短横线分隔格式 (e.g., `user-dept`). 常用于 URL.
-*   `camelCaseModelName` (String): 模型名的驼峰格式 (e.g., `userDept`). 常用于变量名.
-*   `description` (String): 模型的描述信息.
-*   `tableName` (String): 对应的数据库表名.
-*   `tableAlias` (String): 数据库表的别名 (用于 SQL 查询).
-*   `fields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 模型的所有字段列表.
-*   `primaryKeyFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 作为主键的字段列表.
-*   `primaryKeyField` ([`FieldDefinition`](#32-字段定义对象-fielddefinition)): 主键字段 (多主键时返回第一个).
+**Fields:**
+*   `modelName` (String): The simple name of the model class (e.g., `UserDept`).
+*   `kebabCaseModelName` (String): The kebab-case format of the model name (e.g., `user-dept`). Often used in URLs.
+*   `camelCaseModelName` (String): The camelCase format of the model name (e.g., `userDept`). Often used for variable names.
+*   `description` (String): Description of the model.
+*   `tableName` (String): Corresponding database table name.
+*   `tableAlias` (String): Alias for the database table (used in SQL queries).
+*   `fields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): List of all fields in the model.
+*   `primaryKeyFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): List of fields that are primary keys.
+*   `primaryKeyField` ([`FieldDefinition`](#32-field-definition-object-fielddefinition)): The primary key field (returns the first one if multiple exist).
 
-### 3.2 字段定义对象 (`FieldDefinition`)
+### 3.2 Field Definition Object (`FieldDefinition`)
 
-**描述**: 定义了模型中的一个字段（属性）的详细信息。
-**常用位置:** `$mainModel.fields`, `$readDefinition.conditionFields`
+**Description**: Defines the detailed information for a field (property) in a model.
+**Common Locations:** `$mainModel.fields`, `$readDefinition.conditionFields`
 
-**字段:**
-*   `property` (String): Java 实体类的属性名 (e.g., `userName`).
-*   `label` (String): 字段的说明或标签信息 (e.g., `用户名`).
-*   `javaType` (String): 字段的 Java 全限定类型名 (e.g., `java.lang.String`).
-*   `enumType` (Boolean): 指示该字段是否为枚举类型.
-*   `jdbcType` (String): 映射到数据库的 JDBC 类型 (e.g., `VARCHAR`).
-*   `columnName` (String): 映射的数据库表列名.
-*   `columnType` (String): 数据库列的类型 (e.g., `varchar(255)`).
-*   `nullable` (Boolean): 指示该列是否允许 NULL 值.
-*   `unique` (Boolean): 指示该列是否具有唯一约束.
-*   `maxLength` (Integer): 字段数据的最大长度（对于字符串等类型），可为 null.
-*   `primaryKey` (Boolean): 指示该字段是否为主键的一部分.
-*   `format` (String): 数据格式（常用于日期时间字段，如 `yyyy-MM-dd HH:mm:ss`）.
-*   `exist` (Boolean): 指示该属性是否真正映射到数据库表字段.
-*   `selectProperties` ([`SelectProperties`](#356-selectproperties-检索属性)): 配置该字段在**数据检索**时的行为.
-*   `conditionProperties` ([`ConditionProperties`](#357-conditionproperties-条件属性)): 配置该字段作为**查询条件**时的行为.
-*   `formProperties` ([`FormProperties`](#358-formproperties-表单属性)): 配置该字段在**前端表单**中的行为.
+**Fields:**
+*   `property` (String): The property name in the Java entity class (e.g., `userName`).
+*   `label` (String): The description or label of the field (e.g., `Username`).
+*   `javaType` (String): The fully qualified Java type name of the field (e.g., `java.lang.String`).
+*   `enumType` (Boolean): Indicates if this field is an enum type.
+*   `jdbcType` (String): The JDBC type mapped to the database (e.g., `VARCHAR`).
+*   `columnName` (String): The mapped database table column name.
+*   `columnType` (String): The type of the database column (e.g., `varchar(255)`).
+*   `nullable` (Boolean): Indicates if the column allows NULL values.
+*   `unique` (Boolean): Indicates if the column has a unique constraint.
+*   `maxLength` (Integer): The maximum length of the field data (for types like String), can be null.
+*   `primaryKey` (Boolean): Indicates if the field is part of the primary key.
+*   `format` (String): Data format (often used for datetime fields, e.g., `yyyy-MM-dd HH:mm:ss`).
+*   `exist` (Boolean): Indicates if this property actually maps to a database table column.
+*   `selectProperties` ([`SelectProperties`](#355-selectproperties-retrieval-properties)): Configures the field's behavior during **data retrieval**.
+*   `conditionProperties` ([`ConditionProperties`](#356-conditionproperties-condition-properties)): Configures the field's behavior when used as a **query condition**.
+*   `formProperties` ([`FormProperties`](#357-formproperties-form-properties)): Configures the field's behavior in the **frontend form**.
 
-### 3.3 Java类信息对象 (`JavaClass`)
+### 3.3 Java Class Information Object (`JavaClass`)
 
-**描述**: 定义了一个 Java 类的元数据信息。
-**可用实例:** `$mainModelClass`, `$currentClass`, `$serviceClass`
+**Description**: Defines the metadata information for a Java class.
+**Available Instances:** `$mainModelClass`, `$currentClass`, `$serviceClass`
 
-**字段:**
-*   `packageName` (String): 类所在的包名 (e.g., `com.example.model`).
-*   `qualifiedName` (String): 类的全限定名 (e.g., `com.example.model.User`).
-*   `simpleName` (String): 类的简单名称 (e.g., `User`).
-*   `fields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该类中定义的所有字段的列表.
-*   `dynamicImports` (List<String>): 需要导入的其他类的全限定名列表.
-*   `superClass` ([`JavaClass`](#33-java类信息对象-javaclass)): 该类的父类信息.
+**Fields:**
+*   `packageName` (String): The package name where the class resides (e.g., `com.example.model`).
+*   `qualifiedName` (String): The fully qualified name of the class (e.g., `com.example.model.User`).
+*   `simpleName` (String): The simple name of the class (e.g., `User`).
+*   `fields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): List of all fields defined in this class.
+*   `dynamicImports` (List<String>): List of fully qualified names of other classes that need to be imported.
+*   `superClass` ([`JavaClass`](#33-java-class-information-object-javaclass)): The parent class information of this class.
 
-**方法:**
-*   `containsProperty(String propertyName)` (Boolean): 判断当前类的字段列表中是否包含指定属性名。
+**Methods:**
+*   `containsProperty(String propertyName)` (Boolean): Checks if the current class's field list contains the specified property name.
 
-### 3.4 功能定义对象
+### 3.4 Function Definition Objects
 
-#### 3.4.1 `ReadDefinition` (查询功能)
-**描述**: 定义了【查询】功能的完整配置，支持复杂查询和钻取。
-**可用实例:** `$readDefinition` (可为空)
+#### 3.4.1 `ReadDefinition` (Query Function)
+**Description**: Defines the complete configuration for the 【Query】 function, supporting complex queries and drilling.
+**Available Instances:** `$readDefinition` (Can be null)
 
-**字段:**
-*   `functionName` (String): 功能的核心名称 (e.g., `getUserList`).
-*   `singleResult` (Boolean): 查询范围 (`'list'` 或 `'one'`), `true`为查询单条，`false`为查询列表.
-*   `orderByProp` (String): 排序字段名（可空）.
-*   `orderProp` (String): 排序顺序（可空）.
-*   `description` (String): 功能的描述信息.
-*   `selectFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 需要检出的**所有**字段.
-*   `resultFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 最终结果实体中包含的字段.
-*   `conditionFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 需要用到的所有条件字段.
-*   `requestParamFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 需要用到的所有条件字段（当不使用实体接收参数时）.
-*   `resultFieldsTree` (Object): 检出字段的树形结构，用于生成嵌套 `resultMap`.
-*   `recursiveNestedField` ([`RecursiveNestedField`](#352-recursivenestedfield-递归嵌套)): 递归嵌套字段配置（如树形结构）.
-*   `select` ([`SelectDefinition`](#354-selectdefinition-查询定义)): SQL查询片段的描述.
+**Fields:**
+*   `functionName` (String): The core name of the function (e.g., `getUserList`).
+*   `singleResult` (Boolean): Query scope (`'list'` or `'one'`), `true` for single item query, `false` for list query.
+*   `orderByProp` (String): Sort field name (nullable).
+*   `orderProp` (String): Sort order (nullable).
+*   `description` (String): Description of the function.
+*   `selectFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): **All** fields that need to be selected.
+*   `resultFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): Fields contained in the final result entity.
+*   `conditionFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): All condition fields used.
+*   `requestParamFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): All condition fields used (when not using an entity to receive parameters).
+*   `resultFieldsTree` (Object): Tree structure of selected fields, used for generating nested `resultMap`.
+*   `recursiveNestedField` ([`RecursiveNestedField`](#351-recursivenestedfield-recursive-nesting)): Recursive nested field configuration (e.g., tree structure).
+*   `select` ([`SelectDefinition`](#353-selectdefinition-query-definition)): Description of the SQL query fragment.
 
+#### 3.4.2 `CreateDefinition` (Create Function)
+**Description**: Defines the configuration for the 【Create】 function.
+**Available Instances:** `$createDefinition` (Can be null)
+**Fields:**
+*   `functionName` (String): The core name of the function (e.g., `createUser`).
+*   `formFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): List of fields that need to be processed in the "Create" form.
 
-#### 3.4.2 `CreateDefinition` (创建功能)
-**描述**: 定义了【创建】功能的配置。
-**可用实例:** `$createDefinition` (可为空)
-**字段:**
-*   `functionName` (String): 功能的核心名称 (e.g., `createUser`).
-*   `formFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 在"新增"表单中需要处理的字段列表.
+#### 3.4.3 `UpdateDefinition` (Update Function)
+**Description**: Defines the configuration for the 【Update】 function.
+**Available Instances:** `$updateDefinition` (Can be null)
+**Fields:**
+*   `functionName` (String): The core name of the function (e.g., `updateUser`).
+*   `formFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): List of fields that need to be processed in the "Update" form.
 
-#### 3.4.3 `UpdateDefinition` (修改功能)
-**描述**: 定义了【修改】功能的配置。
-**可用实例:** `$updateDefinition` (可为空)
-**字段:**
-*   `functionName` (String): 功能的核心名称 (e.g., `updateUser`).
-*   `formFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 在"修改"表单中需要处理的字段列表.
+#### 3.4.4 `DeleteDefinition` (Delete Function)
+**Description**: Defines the configuration for the 【Delete】 function.
+**Available Instances:** `$deleteDefinition` (Can be null)
+**Fields:**
+*   `functionName` (String): The core name of the function (e.g., `deleteUserById`).
 
-#### 3.4.4 `DeleteDefinition` (删除功能)
-**描述**: 定义了【删除】功能的配置。
-**可用实例:** `$deleteDefinition` (可为空)
-**字段:**
-*   `functionName` (String): 功能的核心名称 (e.g., `deleteUserById`).
+### 3.5 Associated Type Details
 
-### 3.5 关联类型详解
+#### 3.5.1 `RecursiveNestedField` (Recursive Nesting)
+**Description**: Defines special field configuration for recursive nested queries.
+**Available Location:** `$readDefinition.recursiveNestedField`
+**Fields:**
+*   `property` (String): The collection property name that holds the recursive subset (e.g., `children`).
+*   `foreignProperty` (String): The foreign key property name pointing to the parent node ID (e.g., `parentId`).
+*   `lazy` (Boolean): Whether to use lazy loading for the recursive subset.
 
-#### 3.5.1 `RecursiveNestedField` (递归嵌套)
-**描述**: 定义了递归嵌套查询的特殊字段配置。
-**可用位置:** `$readDefinition.recursiveNestedField`
-**字段:**
-*   `property` (String): 承载递归子集的集合属性名 (e.g., `children`).
-*   `foreignProperty` (String): 指向父节点ID的外键属性名 (e.g., `parentId`).
-*   `lazy` (Boolean): 是否对递归子集采用懒加载.
+#### 3.5.2 `SelectDefinition` (Query Definition)
+**Description**: Defines the core elements of an SQL query fragment.
+**Available Location:** `$readDefinition.select`
+**Fields:**
+*   `selectFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): List of fields to be selected in this query fragment.
+*   `conditionFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): List of condition fields required for this query fragment.
+*   `tableJoins` (List<[`TableJoin`](#352-tablejoin-table-join)>): List of table join relationships required for this query fragment.
 
-#### 3.5.2 `SelectDefinition` (查询定义)
-**描述**: 定义了一个SQL查询片段的核心要素。
-**可用位置:** `$readDefinition.allSelects`
-**字段:**
-*   `functionName` (String): 查询片段对应的方法名/SQL ID.
-*   `selectFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该查询片段需要检出的字段列表.
-*   `conditionFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该查询片段需要的条件字段列表.
-*   `tableJoins` (List<[`TableJoin`](#353-tablejoin-表关联)>): 该查询片段需要用到的表关联关系列表.
+#### 3.5.3 `TableJoin` (Table Join)
+**Description**: Defines the join relationship between two database tables.
+**Available Location:** `$selectDefinition.tableJoins`
+**Fields:**
+*   `tableName` (String): The table name of the **current table**.
+*   `tableAlias` (String): The alias of the **current table**.
+*   `columnName` (String): The column name used for joining in the **current table**.
+*   `relatedTableName` (String): The name of the related table.
+*   `relatedTableAlias` (String): The alias of the related table.
+*   `relatedColumnName` (String): The column name used for joining in the **related table**.
 
-#### 3.5.3 `TableJoin` (表关联)
-**描述**: 定义了两个数据库表之间的关联关系。
-**可用位置:** `$selectDefinition.tableJoins`
-**字段:**
-*   `tableName` (String): **当前表**的表名.
-*   `tableAlias` (String): **当前表**的别名.
-*   `columnName` (String): **当前表**中用于关联的列名.
-*   `relatedTableName` (String): 被关联的表名.
-*   `relatedTableAlias` (String): 被关联表的别名.
-*   `relatedColumnName` (String): **被关联表**中用于关联的列名.
+#### 3.5.4 `SelectProperties` (Retrieval Properties)
+**Description**: Configures the field's behavior during data retrieval.
+**Available Location:** `$fieldDefinition.selectProperties`
+**Fields:**
+*   `propAlias` (String): The property alias after the field is selected.
+*   `labelAlias` (String): The display name alias after the field is selected.
+*   `columnAlias` (String): The alias for the database column corresponding to the field.
+*   `visible` (Boolean): Whether the field is displayed on the frontend.
+*   `lazy` (Boolean): Whether to use lazy loading.
 
-#### 3.5.4 `SelectProperties` (检索属性)
-**描述**: 配置字段在数据检索时的行为。
-**可用位置:** `$fieldDefinition.selectProperties`
-**字段:**
-*   `propAlias` (String): 字段检出后的属性别名.
-*   `labelAlias` (String): 字段检出后的显示名称别名.
-*   `columnAlias` (String): 字段对应的数据库列的别名.
-*   `visible` (Boolean): 字段是否在前端显示.
-*   `lazy` (Boolean): 是否懒加载.
+#### 3.5.5 `ConditionProperties` (Condition Properties)
+**Description**: Configures the field's behavior when used as a query condition.
+**Available Location:** `$fieldDefinition.conditionProperties`
+**Fields:**
+*   `propAlias` (String): The property alias of the condition field.
+*   `labelAlias` (String): The display name alias of the condition field.
+*   `inputType` (String): Frontend input component type (e.g., `'input'`, `'select'`).
+*   `compareType` (String): SQL comparison operator (e.g., `'='`, `'LIKE'`, `'>'`).
+*   `required` (Boolean): Whether the value of the condition field must be non-empty.
 
-#### 3.5.5 `ConditionProperties` (条件属性)
-**描述**: 配置字段作为查询条件时的行为。
-**可用位置:** `$fieldDefinition.conditionProperties`
-**字段:**
-*   `propAlias` (String): 条件字段的属性别名.
-*   `labelAlias` (String): 条件字段的显示名称别名.
-*   `inputType` (String): 前端输入组件类型 (e.g., `'input'`, `'select'`).
-*   `compareType` (String): SQL 比较操作符 (e.g., `'='`, `'LIKE'`, `'>'`).
-*   `required` (Boolean): 条件字段的值是否必须非空.
+#### 3.5.6 `FormProperties` (Form Properties)
+**Description**: Configures the field's behavior in the frontend form.
+**Available Location:** `$fieldDefinition.formProperties`
+**Fields:**
+*   `inputType` (String): The type of input component in the frontend form (e.g., `'input'`, `'textarea'`).
+*   `span` (Integer): The number of grid columns this field occupies in a grid layout (based on a 24-column system).
+*   `editable` (Boolean): Whether the field is editable in the form.
 
-#### 3.5.6 `FormProperties` (表单属性)
-**描述**: 配置字段在前端表单中的行为。
-**可用位置:** `$fieldDefinition.formProperties`
-**字段:**
-*   `inputType` (String): 前端表单中输入组件的类型 (e.g., `'input'`, `'textarea'`).
-*   `span` (Integer): 在栅格布局中该字段所占的栅格数 (基于 24 分制).
-*   `editable` (Boolean): 该字段在表单中是否可编辑.
+### 3.6 Utility Functions (`myTool`)
 
-### 3.6 工具函数 (`myTool`)
+**Description**: Provides a collection of utility functions for use in templates.
+**Available Instances:** `$myTool`
 
-**描述**: 提供了在模板中使用的工具函数集合。
-**可用实例:** `$myTool`
+**Methods:**
+*   `getFieldGetterName(`[`FieldDefinition`](#32-field-definition-object-fielddefinition)` field)` (String): Generates the Getter method name (e.g., `getUserName`).
+*   `getFieldSetterName(`[`FieldDefinition`](#32-field-definition-object-fielddefinition)` field)` (String): Generates the Setter method name (e.g., `setUserName`).
+*   `toUpperCamelCase(String str)` (String): Converts to UpperCamelCase format (e.g., `userName` -> `UserName`).
+*   `toLowerCamelCase(String str)` (String): Converts to LowerCamelCase format (e.g., `UserName` -> `userName`).
+*   `getJavaTypeSimpleName(String javaType, boolean withGenerics)` (String): Gets the simple name of the Java type.
+*   `getAliasOrProperty(`[`FieldDefinition`](#32-field-definition-object-fielddefinition)` field)` (String): Gets the field alias or property name.
+*   `getTsTypeForJavaType(String javaType)` (String): Gets the TypeScript type corresponding to the Java type.
+*   `deduplicate(Collection<Object>... collections)` (List<Object>): Merges and deduplicates collections.
 
-**方法:**
-*   `getFieldGetterName(`[`FieldDefinition`](#32-字段定义对象-fielddefinition)` field)` (String): 生成 Getter 方法名 (e.g., `getUserName`).
-*   `getFieldSetterName(`[`FieldDefinition`](#32-字段定义对象-fielddefinition)` field)` (String): 生成 Setter 方法名 (e.g., `setUserName`).
-*   `toUpperCamelCase(String str)` (String): 转换为大驼峰格式 (e.g., `userName` -> `UserName`).
-*   `toLowerCamelCase(String str)` (String): 转换为小驼峰格式 (e.g., `UserName` -> `userName`).
-*   `getJavaTypeSimpleName(String javaType, boolean withGenerics)` (String): 获取Java类型简称.
-*   `getAliasOrProperty(`[`FieldDefinition`](#32-字段定义对象-fielddefinition)` field)` (String): 获取字段别名或属性名.
-*   `getTsTypeForJavaType(String javaType)` (String): 获取Java类型对应的TS类型.
-*   `deduplicate(Collection<Object>... collections)` (List<Object>): 对集合进行合并并去重.
-
-**Velocity 宏:**
+**Velocity Macros:**
 *   `#getTsType($javaType)`
 *   `#getFieldGetterName($field)`
 *   `#getFieldSetterName($field)`
@@ -225,11 +223,11 @@ public class $mainModelClass.simpleNameController {
 *   `#getAliasOrProperty($field)`
 *   `#getJavaTypeSimpleName($javaType)`
 *   `#getJavaTypeSimpleName($javaType, $withGenerics)`
-*   `#mybatisResultMapFields($resultFieldsTree)`: 自动生成 MyBatis ResultMap 字段映射部分.
+*   `#mybatisResultMapFields($resultFieldsTree)`: Automatically generates the field mapping part of the MyBatis ResultMap.
 
-## 四、综合示例
+## 4. Comprehensive Examples
 
-### 4.1 生成 Java Model 类
+### 4.1 Generating a Java Model Class
 ```velocity
 /**
  * ${currentModel.description}
@@ -254,7 +252,7 @@ public class $currentClass.simpleName #if($currentClass.superClass)extends $curr
 }
 ```
 
-### 4.2 生成 MyBatis Mapper XML (处理分散参数场景)
+### 4.2 Generating MyBatis Mapper XML (Handling Scattered Parameter Scenario)
 ```xml
 <mapper namespace="$mapperClass.qualifiedName">
     <select id="$readDefinition.functionName" resultMap="BaseResultMap">
@@ -273,13 +271,13 @@ public class $currentClass.simpleName #if($currentClass.superClass)extends $curr
     </select>
 
     <resultMap id="BaseResultMap" type="$resultModelClass.qualifiedName">
-        <!-- 使用宏自动生成所有字段映射 -->
+        <!-- Use macro to automatically generate all field mappings -->
         #mybatisResultMapFields($readDefinition.resultFieldsTree)
     </resultMap>
 </mapper>
 ```
 
-### 4.3 生成 Service 接口 (处理分散参数场景)
+### 4.3 Generating Service Interface (Handling Scattered Parameter Scenario)
 ```java
 package $serviceClass.packageName;
 
@@ -288,7 +286,7 @@ import java.util.List;
 
 public interface $serviceClass.simpleName {
     List<$resultModelClass.simpleName> $readDefinition.functionName(
-        #if(!$requestModelClass) ## 如果请求模型为空，则使用分散字段作为参数
+        #if(!$requestModelClass) ## If request model is empty, use scattered fields as parameters
             #foreach($condition in $readDefinition.conditionFields)
                 @Param("$condition.property") $myTool.getJavaTypeSimpleName($condition.javaType) $condition.property #if( $foreach.hasNext ), #end
             #end
@@ -299,4 +297,4 @@ public interface $serviceClass.simpleName {
 }
 ```
 ------
-回到[上一页](./README.md)
+Back to [Home](./README.md)

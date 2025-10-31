@@ -1,0 +1,104 @@
+package ${currentClass.packageName};
+
+import ${mainModelClass.qualifiedName};
+#if(${requestModelClass.simpleName} != ${mainModelClass.simpleName})## A
+#if($requestModelClass != $null)## A-1
+import ${requestModelClass.qualifiedName};
+#end## A-1
+#if(${resultModelClass.simpleName} != ${mainModelClass.simpleName} && ${resultModelClass.simpleName} != ${requestModelClass.simpleName})## A-2
+import ${resultModelClass.qualifiedName};
+#end## A-2
+#elseif(${resultModelClass.simpleName} != ${mainModelClass.simpleName})## A
+import ${resultModelClass.qualifiedName};
+#end## A
+import ${serviceClass.qualifiedName};
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import java.util.List;
+#foreach ($importType in $currentClass.dynamicImports)## A
+import ${importType};
+#end## A
+
+@Api("${mainModel.description}")
+@RestController
+@RequestMapping("${mainModel.kebabCaseModelName}")
+public class ${currentClass.simpleName} {
+
+    @Autowired
+    ${serviceClass.simpleName} ${mainModel.camelCaseModelName}Service;
+
+#if($readDefinition != $null)## A
+#if(!$readDefinition.singleResult)## A-1
+    @ApiOperation("Read ${mainModel.description} list")
+    @GetMapping
+    @PreAuthorize("hasAuthority('${module}:${mainModel.kebabCaseModelName}:read')")
+#if($requestModelClass != $null)## A-1-1
+    public List<${resultModelClass.simpleName}> ${readDefinition.functionName}(${requestModelClass.simpleName} #toLowerCamelCase(${requestModelClass.simpleName})) {
+        List<${resultModelClass.simpleName}> ${mainModel.camelCaseModelName}List = ${mainModel.camelCaseModelName}Service.${readDefinition.functionName}(#toLowerCamelCase(${requestModelClass.simpleName}));
+#else## A-1-1
+    public List<${resultModelClass.simpleName}> ${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)#if(${requestParamField.jdbcType} == 'DATE' || ${requestParamField.jdbcType} == 'TIMESTAMP' || ${requestParamField.jdbcType} == 'TIME')#if($requestParamField.format == "DATE")@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)#elseif($requestParamField.format == "TIME")@DateTimeFormat(iso = DateTimeFormat.ISO.TIME)#else@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)#end #end#getJavaTypeSimpleName(${requestParamField.javaType}) $requestParamField.property#{if}( !$foreach.last ), #end#end) {
+        List<${resultModelClass.simpleName}> ${mainModel.camelCaseModelName}List = ${mainModel.camelCaseModelName}Service.${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)$requestParamField.property#{if}( !$foreach.last ), #end#end);
+#end## A-1-1
+        return ${mainModel.camelCaseModelName}List;
+    }
+
+#else## A-1
+#if($requestModelClass != $null)## A-1-1
+    @ApiOperation("Read ${mainModel.description}")
+    @GetMapping
+    @PreAuthorize("hasAuthority('${module}:${mainModel.kebabCaseModelName}:read')")
+    public ${resultModelClass.simpleName} ${readDefinition.functionName}(${requestModelClass.simpleName} #toLowerCamelCase(${requestModelClass.simpleName})) {
+        ${resultModelClass.simpleName} ${mainModel.camelCaseModelName} = ${mainModel.camelCaseModelName}Service.${readDefinition.functionName}(#toLowerCamelCase(${requestModelClass.simpleName}));
+#else## A-1-1
+#set($pathParamFields = [])
+#foreach($requestParamField in $readDefinition.requestParamFields)## A-1-1-1
+#if($requestParamField.unique && $requestParamField.conditionProperties.required)## A-1-1-1-1
+#if($pathParamFields.add(${requestParamField}))#end
+#end## A-1-1-1-1
+#end## A-1-1-1
+    @ApiOperation("Read ${mainModel.description}")
+    @GetMapping("#foreach($pathParamField in $pathParamFields){${pathParamField.property}}#if( !$foreach.last )/#end#end")
+    @PreAuthorize("hasAuthority('${module}:${mainModel.kebabCaseModelName}:read')")
+    public ${resultModelClass.simpleName} ${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)#if(${requestParamField.jdbcType} == 'DATE' || ${requestParamField.jdbcType} == 'TIMESTAMP' || ${requestParamField.jdbcType} == 'TIME')#if($requestParamField.format == "DATE")@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)#elseif($requestParamField.format == "TIME")@DateTimeFormat(iso = DateTimeFormat.ISO.TIME)#else@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)#end #end#if($requestParamField.unique && $requestParamField.conditionProperties.required)@PathVariable("${requestParamField.property}") #end#getJavaTypeSimpleName(${requestParamField.javaType}) $requestParamField.property#{if}( !$foreach.last ), #end#end) {
+        ${resultModelClass.simpleName} ${mainModel.camelCaseModelName} = ${mainModel.camelCaseModelName}Service.${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)$requestParamField.property#{if}( !$foreach.last ), #end#end);
+#end## A-1-1
+        return ${mainModel.camelCaseModelName};
+    }
+
+#end## A-1
+#end## A
+#if($createDefinition != $null)## A
+    @ApiOperation("Add ${mainModel.description}")
+    @PostMapping
+    @PreAuthorize("hasAuthority('${module}:${mainModel.kebabCaseModelName}:create')")
+    public String ${createDefinition.functionName}(@RequestBody ${mainModelClass.simpleName} ${mainModel.camelCaseModelName}) {
+        ${mainModel.camelCaseModelName}Service.${createDefinition.functionName}(${mainModel.camelCaseModelName});
+        return "OK";
+    }
+
+#end## A
+#if($updateDefinition != $null)## A
+    @ApiOperation("Edit ${mainModel.description}")
+    @PutMapping
+    @PreAuthorize("hasAuthority('${module}:${mainModel.kebabCaseModelName}:update')")
+    public String ${updateDefinition.functionName}(@RequestBody ${mainModelClass.simpleName} ${mainModel.camelCaseModelName}) {
+        ${mainModel.camelCaseModelName}Service.${updateDefinition.functionName}(${mainModel.camelCaseModelName});
+        return "OK";
+    }
+
+#end## A
+#if($deleteDefinition != $null)## A
+    @ApiOperation("Remove ${mainModel.description}")
+    @DeleteMapping("#foreach($primaryKeyField in $mainModel.primaryKeyFields){${primaryKeyField.property}}#if( !$foreach.last )/#end#end")
+    @PreAuthorize("hasAuthority('${module}:${mainModel.kebabCaseModelName}:delete')")
+    public String ${deleteDefinition.functionName}(#foreach($primaryKeyField in $mainModel.primaryKeyFields)@PathVariable("${primaryKeyField.property}") #getJavaTypeSimpleName(${primaryKeyField.javaType}) $primaryKeyField.property#if( !$foreach.last ), #end#end) {
+        ${mainModel.camelCaseModelName}Service.${deleteDefinition.functionName}(#foreach($primaryKeyField in $mainModel.primaryKeyFields)$primaryKeyField.property#if( !$foreach.last ), #end#end);
+        return "OK";
+    }
+
+#end## A
+}

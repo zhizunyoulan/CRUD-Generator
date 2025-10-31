@@ -1,0 +1,641 @@
+#set( $D = '$' )
+<script setup lang="ts">
+#set($functions = [])
+#if($readDefinition != $null)## A
+#if($functions.add(${readDefinition.functionName}))#end
+#end## A
+#if($createDefinition != $null)## A
+#if($functions.add(${createDefinition.functionName}))#end
+#end## A
+#if($updateDefinition != $null)## A
+#if($functions.add(${updateDefinition.functionName}))#end
+#end## A
+#if($deleteDefinition != $null)## A
+#if($functions.add(${deleteDefinition.functionName}))#end
+#end## A
+#set( $nestedConditionFields = [] )
+#foreach ($field in $readDefinition.conditionFields)## A
+#if($field.conditionProperties.propAlias != $null)## A-1
+#set( $nestedProps = ${field.conditionProperties.propAlias.split("\.")} )
+#else## A-1
+#set( $nestedProps = ${field.property.split("\.")} )
+#end## A-1
+#if($nestedProps.size() > 1 )## A-2
+#if($nestedConditionFields.add($nestedProps[0]))#end
+#end## A-2
+#end## A
+#set( $nestedConditionFields = ${myTool.deduplicate($nestedConditionFields)} )
+
+#set($dynamicOrderFields = [])
+#set($dynamicOrderFieldIds = [])
+#foreach($orderField in $readDefinition.orderFields)## A
+#if($orderField.orderProperties.dynamic)## A-1
+#if($dynamicOrderFields.add(${orderField}))#end
+#if($dynamicOrderFieldIds.add(${orderField.id}))#end
+#end## A-1
+#end## A
+import type { Ref } from 'vue'
+import { ref, computed, nextTick, useTemplateRef, onMounted } from 'vue'
+import { ElTable, ElForm, ElDialog, ElMessageBox, ElMessage } from 'element-plus'
+#if(!$dynamicOrderFields.empty)## A
+import type { Sort } from 'element-plus'
+#end## A
+import axiosInst from "@/utils/request";
+import ${mainModel.camelCaseModelName}Apis from '@/$myTool.pathOf("src").relativize($myTool.relativePathOf("FRONTEND_API")).trimExt()'
+
+const { #foreach ($functionName in $functions)${functionName}#if( !$foreach.last ),#end#end } = ${mainModel.camelCaseModelName}Apis## A
+// Query Model
+#if($nestedConditionFields.size() > 0)## A
+const queryModel: Ref<Record<string, any>> = ref({
+#foreach ($nestedConditionProp in $nestedConditionFields)## A-1
+        $nestedConditionProp: {},
+#end## A-1
+})
+#else## A
+const queryModel: Ref<Record<string, any>> = ref({})
+#end## A
+// Sorting param
+
+#if(!$dynamicOrderFields.empty)## A
+const sort: Ref<Sort | undefined> = ref()
+#end## A
+const loading = ref(false)
+// Query result
+#if($readDefinition.singleResult && $requestModelClass == $null)## A
+const result: Ref<Record<string, any>> = ref({})
+#else## A
+const resultList: Ref<Record<string, any>[]> = ref([])
+#end## A
+#if($createDefinition != $null || $updateDefinition != $null)## A
+// Dialog for `Create` or `Update`
+const dialogVisible = ref(false)
+const dialogUseFor: Ref<'add' | 'edit' | undefined> = ref()
+const dialogTitle = ref('')
+const ${mainModel.camelCaseModelName}Form = useTemplateRef('${mainModel.kebabCaseModelName}-form')
+const ${mainModel.camelCaseModelName}FormModel: Ref<Record<string, any>> = ref({})
+#end## A
+
+// Query function
+#if($readDefinition.singleResult && $requestModelClass == $null)## A
+function handleQuery() {
+#set($pathParamFields = [])
+#set($otherParamFields = [])
+#foreach($requestParamField in $readDefinition.requestParamFields)## A-1
+#if($requestParamField.unique && $requestParamField.conditionProperties.required)## A-1-1
+#if($pathParamFields.add(${requestParamField}))#end
+#else## A-1-1
+#if($otherParamFields.add(${requestParamField}))#end
+#end## A-1-1
+#end## A-1
+  const requestConfig = ${readDefinition.functionName}(#foreach($pathParamField in $pathParamFields)queryModel.value.${pathParamField.property}#if( !$foreach.last ),#end#end)
+#if($otherParamFields.empty)## A-2
+  loading.value = true
+#if($dynamicOrderFields.empty)## A-2-1
+  axiosInst.request(requestConfig).then((res) => {
+#else## A-2-1
+  const params = {
+    $readDefinition.orderByProp: sort.value?.prop,
+    $readDefinition.orderProp: sort.value?.order
+  }
+  axiosInst.request({...requestConfig, params}).then((res) => {
+#end## A-2-1
+    result.value = res.data
+    loading.value = false
+  }).catch(() => {
+    loading.value = false
+  });
+}
+#else## A-2
+  const params: Record<string, any> = {}
+#foreach ($field in $otherParamFields)## A-2-1
+#set($fieldValueType=$myTool.getTsTypeForJavaType($field.javaType))
+#if($field.conditionProperties.compareType == 'between' && $fieldValueType == "Date")## A-2-1-1
+#if($field.conditionProperties.propAlias != $null)## A-2-1-1-1
+#set( $propAlias = ${field.conditionProperties.propAlias} )
+#else## A-2-1-1-1
+#set( $propAlias = ${field.property} )
+#end## A-2-1-1-1
+  if (Array.isArray(params.$propAlias)) {
+    params.${field.conditionProperties.betweenLeftProp} = queryModel.value.${propAlias}[0]
+    params.${field.conditionProperties.betweenRightProp} = queryModel.value.${propAlias}[1]
+  }
+#else## A-2-1-1
+  params.${field.property} = queryModel.value.${field.property}
+#end## A-2-1-1
+#end## A-2-1
+#if(!$dynamicOrderFields.empty)## A-2-2
+  if(sort.value) {
+    params.$readDefinition.orderByProp = sort.value.prop
+    params.$readDefinition.orderProp = sort.value.order
+  }
+#end## A-2-2
+  loading.value = true
+  axiosInst.request({...requestConfig, params}).then((res) => {
+    resultList.value = res.data
+    loading.value = false
+  }).catch(() => {
+    loading.value = false
+  });
+}
+#end## A-2
+#else## A
+function handleQuery() {
+  let params: Record<string, any> = { ...queryModel.value }
+#foreach ($nestedConditionProp in $nestedConditionFields)## A-1
+  params.$nestedConditionProp = {...params.$nestedConditionProp}
+#end## A-1
+#foreach ($field in $readDefinition.conditionFields)## A-2
+#set($fieldValueType=$myTool.getTsTypeForJavaType($field.javaType))
+#if($field.conditionProperties.compareType == 'between' && $fieldValueType == "Date")## A-2-1
+#if($field.conditionProperties.propAlias != $null)## A-2-1-1
+#set( $propAlias = ${field.conditionProperties.propAlias} )
+#else## A-2-1-1
+#set( $propAlias = ${field.property} )
+#end## A-2-1-1
+  if (Array.isArray(params.$propAlias)) {
+    params.${field.conditionProperties.betweenLeftProp} = params.${propAlias}[0]
+    params.${field.conditionProperties.betweenRightProp} = params.${propAlias}[1]
+    delete params.$propAlias
+  }
+#end## A-2-1
+#end## A-2
+#if(!$dynamicOrderFields.empty)## A-3
+  if(sort.value) {
+    params.$readDefinition.orderByProp = sort.value.prop
+    params.$readDefinition.orderProp = sort.value.order
+  }
+#end## A-3
+  loading.value = true
+  axiosInst.request({...${readDefinition.functionName}, params}).then((res) => {
+    resultList.value = res.data
+    loading.value = false
+  }).catch(() => {
+    loading.value = false
+  });
+}
+#end## A
+
+#if(!$dynamicOrderFields.empty)## A
+function onSortChange({ prop, order }: Sort) {
+  if(prop) {
+    sort.value = undefined
+  }else {
+    sort.value = {
+      prop,
+      order
+    }
+  }
+  handleQuery()
+}
+#end## A
+
+#if($createDefinition != $null)## A
+//Popup the dialog for creation
+function handleAdd${mainModel.modelName}(row: any) {
+  reset${mainModel.modelName}Form()
+  if(row){
+    ${mainModel.camelCaseModelName}FormModel.value = row
+  }
+  dialogTitle.value = 'add ${mainModel.description}'
+  dialogUseFor.value = 'add'
+  dialogVisible.value = true
+}
+
+#end## A
+#if($updateDefinition != $null)## A
+//Popup the dialog for modification
+function handleEdit${mainModel.modelName}(row: any) {
+  reset${mainModel.modelName}Form()
+  ${mainModel.camelCaseModelName}FormModel.value = row
+  dialogTitle.value = 'modify ${mainModel.description}'
+  dialogUseFor.value = 'edit'
+  dialogVisible.value = true
+}
+
+#end## A
+#if($createDefinition != $null || $updateDefinition != $null)## A
+//Submit the form for `Create` or `Update`
+function submit${mainModel.modelName}Form() {
+  ${mainModel.camelCaseModelName}Form.value?.validate((pass: boolean) => {
+    if (pass) {
+      if(dialogUseFor.value == 'add'){
+        axiosInst.request({...${createDefinition.functionName}, data: ${mainModel.camelCaseModelName}FormModel.value }).then((res) => {
+          dialogVisible.value = false
+          ElMessage({
+            message: 'Created successfully',
+            type: 'success',
+          })
+        });
+      }else if(dialogUseFor.value == 'edit') {
+        axiosInst.request({...${updateDefinition.functionName}, data: ${mainModel.camelCaseModelName}FormModel.value }).then((res) => {
+          dialogVisible.value = false
+          ElMessage({
+            message: 'Modified successfully',
+            type: 'success',
+          })
+        });
+      }
+    }
+  })
+}
+
+// Reset the form for `Create` or `Update`
+function reset${mainModel.modelName}Form() {
+  ${mainModel.camelCaseModelName}Form.value?.resetFields()
+  ${mainModel.camelCaseModelName}FormModel.value = {}
+}
+
+// Cancel the submit for `Create` or `Update`
+function cancel${mainModel.modelName}Form(){
+  reset${mainModel.modelName}Form()
+  dialogVisible.value = false
+}
+
+#end## A
+#if($deleteDefinition != $null)## A
+// Confirm deletion
+function handleDelete${mainModel.modelName}(...ids: any){
+    ElMessageBox.confirm(
+      'Are you sure you want to delete the ${mainModel.description}？',
+      'Warning',
+      {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
+    )
+    .then(() => {
+      axiosInst.request(${deleteDefinition.functionName}(...ids)).then((res) => {
+        ElMessage({
+          type: 'success',
+          message: 'Deleted successfully',
+        })
+      });
+    })
+    .catch(() => {
+      ElMessage({
+        type: 'info',
+        message: 'Cancel deletion',
+      })
+    })
+}
+
+#end## A
+
+onMounted(() => {
+  handleQuery()
+})
+</script>
+
+<script lang="ts">
+export default {
+  name: '${mainModel.modelName}View',
+}
+</script>
+
+<template>
+  <div class="app-container">
+#if($readDefinition.conditionFields.size() > 0)## A
+    <el-form ref="${readDefinition.functionName}Form" :model="queryModel" size="small" :inline="true" label-width="68px">
+#foreach ($field in $readDefinition.conditionFields)## A-1
+#if($field.conditionProperties.compareType != 'isNull' && $field.conditionProperties.compareType != 'isNotNull')## A-1-1
+#if($field.conditionProperties.propAlias != $null)## A-1-1-1
+#set( $propAlias = ${field.conditionProperties.propAlias} )
+#else## A-1-1-1
+#set( $propAlias = ${field.property} )
+#end## A-1-1-1
+#if($field.conditionProperties.labelAlias != $null)## A-1-1-2
+#set( $labelAlias = ${field.conditionProperties.labelAlias} )
+#else## A-1-1-2
+#set( $labelAlias = ${field.label} )
+#end## A-1-1-2
+      <el-form-item label="$labelAlias">
+#set($fieldValueType=$myTool.getTsTypeForJavaType($field.javaType))
+#if($fieldValueType == "boolean")## A-1-1-3
+        <el-select v-model="queryModel.${propAlias}" style="width: 80px" clearable placeholder="Select ${labelAlias}">
+          <el-option label="Yes" :value="true"> </el-option>
+          <el-option label="No" :value="false"> </el-option>
+        </el-select>
+#elseif($fieldValueType == "Date")## A-1-1-3
+#if($field.format == "DATE")## A-1-1-3-1
+        <el-date-picker
+          v-model="queryModel.${propAlias}"
+#if($field.conditionProperties.compareType == 'between')## A-1-1-3-1-1
+          type="daterange"
+#else## A-1-1-3-1-1
+          type="date"
+#end## A-1-1-3-1-1
+          clearable
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+          placeholder="Pick ${labelAlias}"
+        >
+        </el-date-picker>
+#elseif($field.format == "TIME")## A-1-1-3-1
+        <el-time-picker
+          v-model="queryModel.${propAlias}"
+#if($field.conditionProperties.compareType == 'between')## A-1-1-3-1-1
+          is-range
+#end## A-1-1-3-1-1
+          clearable
+          format="HH:mm:ss"
+          value-format="HH:mm:ss.SSSZ"
+          placeholder="Pick {labelAlias}"
+        />
+#else## A-1-1-3-1
+        <el-date-picker
+          v-model="queryModel.${propAlias}"
+#if($field.conditionProperties.compareType == 'between')## A-1-1-3-1-1
+          type="datetimerange"
+#else## A-1-1-3-1-1
+          type="datetime"
+#end## A-1-1-3-1-1
+          clearable
+          format="YYYY-MM-DDTHH:mm:ss"
+          value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
+          placeholder="Pick ${labelAlias}"
+        >
+        </el-date-picker>
+#end## A-1-1-3-1
+#else## A-1-1-3
+#if($fieldValueType == "number" && $field.conditionProperties.compareType == 'between')## A-1-1-3-1
+        <el-input
+          v-model="queryModel.${field.conditionProperties.betweenLeftProp}"
+          :formatter="(value: string) => `${value}`.replace(/[^\d\.]/g, '')"
+          :parser="(value: string) => `${value}`.replace(/[^\d\.]/g, '')"
+          clearable
+        ></el-input>
+        &nbsp; - &nbsp;
+        <el-input
+          v-model="queryModel.${field.conditionProperties.betweenRightProp}"
+          :formatter="(value: string) => `${value}`.replace(/[^\d\.]/g, '')"
+          :parser="(value: string) => `${value}`.replace(/[^\d\.]/g, '')"
+          clearable
+        ></el-input>
+#elseif($field.conditionProperties.inputType == "select")## A-1-1-3-1
+        <el-select v-model="queryModel.${propAlias}" style="width: 80px" clearable placeholder="Select ${labelAlias}">
+          <!-- <el-option label="" value=""> </el-option> -->
+        </el-select>
+#elseif($fieldValueType == "number")## A-1-1-3-1
+        <el-input
+          v-model="queryModel.${propAlias}"
+          :formatter="(value: string) => `${value}`.replace(/[^\d\.]/g, '')"
+          :parser="(value: string) => `${value}`.replace(/[^\d\.]/g, '')"
+          clearable
+          placeholder="Input ${labelAlias}"
+        ></el-input>
+#elseif($fieldValueType == "string")## A-1-1-3-1
+        <el-input
+          v-model="queryModel.${propAlias}"
+          clearable
+          placeholder="Input ${labelAlias}"
+        ></el-input>
+#end## A-1-1-3-1
+#end## A-1-1-3
+      </el-form-item>
+#end## A-1-1
+#end## A-1
+
+      <el-form-item>
+        <el-button type="primary" @click="handleQuery()">Query</el-button>
+      </el-form-item>
+    </el-form>
+
+#end## A
+#if($createDefinition != $null)## A
+    <el-row :gutter="10">
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-plus"
+          size="small"
+          @click="handleAdd${mainModel.modelName}"
+        >Add</el-button>
+      </el-col>
+    </el-row>
+
+#end## A
+#if($readDefinition.singleResult)## A
+    <el-descriptions title="" border>
+#foreach ($field in $readDefinition.resultFields)## A-1
+#if($field.selectProperties.visible)## A-1-1
+#if($field.selectProperties.propAlias != $null)## A-1-1-1
+#set( $propAlias = ${field.selectProperties.propAlias} )
+#else## A-1-1-1
+#set( $propAlias = ${field.property} )
+#end## A-1-1-1
+#if($field.selectProperties.labelAlias != $null)## A-1-1-2
+#set( $labelAlias = ${field.selectProperties.labelAlias} )
+#else## A-1-1-2
+#set( $labelAlias = ${field.label} )
+#end## A-1-1-2
+      <el-descriptions-item label="$labelAlias">
+        {{ result.$propAlias }}
+      </el-descriptions-item>
+#end## A-1-1
+#end## A-1
+    </el-descriptions>
+#else## A
+    <el-table
+      v-loading="loading"
+      :data="resultList"
+#if($readDefinition.recursiveNestedField != $null)## A-1
+#if($readDefinition.recursiveNestedField.lazy)## A-1-1
+      lazy
+#end## A-1-1
+      :tree-props="{
+        children: '${readDefinition.recursiveNestedField.property}',
+#if($readDefinition.recursiveNestedField.lazy)## A-1-2
+        hasChildren: '${readDefinition.recursiveNestedField.property}'
+#end## A-1-2
+      }"
+#end## A-1
+#if(!$dynamicOrderFields.empty)## A-2
+      @sort-change="onSortChange"
+#end## A-2
+    >
+## Table columns
+#foreach ($field in $readDefinition.resultFields)## A-3
+#if($field.selectProperties.visible)## A-3-1
+#if($field.selectProperties.propAlias != $null)## A-3-1-1
+#set( $propAlias = ${field.selectProperties.propAlias} )
+#else## A-3-1-1
+#set( $propAlias = ${field.property} )
+#end## A-3-1-1
+#if($field.selectProperties.labelAlias != $null)## A-3-1-2
+#set( $labelAlias = ${field.selectProperties.labelAlias} )
+#else## A-3-1-2
+#set( $labelAlias = ${field.label} )
+#end## A-3-1-2
+      <el-table-column label="$labelAlias" prop="$propAlias" #if($dynamicOrderFieldIds.contains($field.id))sortable #else #end/>
+#end## A-3-1
+#end## A-3
+#if( $updateDefinition != $null || $deleteDefinition != $null || ($readDefinition.recursiveNestedField != $null && $createDefinition != $null) )## A-4
+      <el-table-column label="Opt" align="center" class-name="small-padding fixed-width">
+        <template #default="scope">
+#if($readDefinition.recursiveNestedField != $null && $createDefinition != $null && $mainModel.primaryKeyFields.size() == 1)## A-4-1
+          <el-button link type="primary" icon="el-icon-edit" @click="handleAdd${mainModel.modelName}({ ${readDefinition.recursiveNestedField.joinProperty}: scope.row.${mainModel.primaryKeyField.property} })">Edit</el-button>
+#end## A-4-1
+#if($updateDefinition != $null)## A-4-2
+          <el-button link type="primary" icon="el-icon-edit" @click="handleEdit${mainModel.modelName}(scope.row)">修改</el-button>
+#end## A-4-2
+#if($deleteDefinition != $null)## A-4-3
+#set($idArgs = [])
+#foreach ($primaryKeyField in $mainModel.primaryKeyFields)## A-4-3-1
+#set($idArg = "scope.row.${primaryKeyField.property}")
+#if($idArgs.add(${idArg}))#end
+#end## A-4-3-1
+          <el-button link type="primary" icon="el-icon-delete" @click="handleDelete${mainModel.modelName}(#foreach($idArg in $idArgs)${idArg}#if( !$foreach.last ),#end#end)">Delete</el-button>
+#end## A-4-3
+        </template>
+      </el-table-column>
+#end## A-4
+    </el-table>
+#end## A
+
+#if($createDefinition != $null || $updateDefinition != $null)## A
+    <!-- Dialog for `Add` or `Edit` -->
+    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="500px" append-to-body>
+      <el-form ref="${mainModel.kebabCaseModelName}-form" :model="${mainModel.camelCaseModelName}FormModel" label-position="left" require-asterisk-position="right" label-width="100px">
+        <el-row :gutter="10" type="flex">
+#set($uniqueFormFields = [])
+#if($createDefinition != $null)## A-1
+#set($uniqueFormFields = $createDefinition.formFields)
+#end## A-1
+#if($updateDefinition != $null)## A-2
+#if($createDefinition != $null)## A-2-1
+#set($uniqueFormFields = $myTool.deduplicate($uniqueFormFields, $updateDefinition.formFields))
+#else## A-2-1
+#set($uniqueFormFields = $updateDefinition.formFields)
+#end## A-2-1
+#end## A-2
+#foreach ($field in $uniqueFormFields)## A-3
+#if($field.primaryKey == false)## A-3-1
+#if($createDefinition.formFields.contains($field) || $updateDefinition.formFields.contains($field))## A-3-1-1
+#if($createDefinition.formFields.contains($field) && $updateDefinition.formFields.contains($field))## A-3-1-1-1
+            <el-col :span="${field.formProperties.span}">
+#elseif($createDefinition.formFields.contains($field))## A-3-1-1-1
+            <el-col v-if="dialogUseFor == 'add'" :span="${field.formProperties.span}">
+#elseif($updateDefinition.formFields.contains($field))## A-3-1-1-1
+            <el-col v-if="dialogUseFor == 'edit'" :span="${field.formProperties.span}">
+#end## A-3-1-1-1
+                <el-form-item label="$field.label" prop="${field.property}">
+#set($fieldValueType=$myTool.getTsTypeForJavaType($field.javaType))
+#if($fieldValueType == "boolean")## A-3-1-1-2
+#if($field.formProperties.editable)## A-3-1-1-2-1
+                  <el-switch v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" />
+#else## A-3-1-1-2-1
+                  <el-switch v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" :disabled="dialogUseFor == 'edit'" />
+#end## A-3-1-1-2-1
+#elseif($fieldValueType == "Date")## A-3-1-1-2
+#if($field.format == "TIME")## A-3-1-1-2-1
+#if($field.formProperties.editable)## A-3-1-1-2-1-1
+                  <el-time-picker
+                    v-model="${mainModel.camelCaseModelName}FormModel.${field.property}"
+                    clearable
+                    format="HH:mm:ss"
+                    value-format="HH:mm:ss.SSSZ"
+                    placeholder="选择${field.label}"
+                  />
+#else## A-3-1-1-2-1-1
+                  <el-time-picker
+                    v-model="${mainModel.camelCaseModelName}FormModel.${field.property}"
+                    clearable
+                    :disabled="dialogUseFor == 'edit'"
+                    format="HH:mm:ss"
+                    value-format="HH:mm:ss.SSSZ"
+                    placeholder="Pick ${field.label}"
+                  />
+#end## A-3-1-1-2-1-1
+#elseif($field.format == "DATE")## A-3-1-1-2-1
+#if($field.formProperties.editable)## A-3-1-1-2-1-1
+                  <el-date-picker
+                    v-model="${mainModel.camelCaseModelName}FormModel.${field.property}"
+                    type="date"
+                    clearable
+                    format="YYYY-MM-DD"
+                    value-format="YYYY-MM-DD"
+                    placeholder="Pick ${field.label}"
+                  >
+                  </el-date-picker>
+#else## A-3-1-1-2-1-1
+                  <el-date-picker
+                    v-model="${mainModel.camelCaseModelName}FormModel.${field.property}"
+                    type="date"
+                    clearable
+                    :disabled="dialogUseFor == 'edit'"
+                    format="YYYY-MM-DD"
+                    value-format="YYYY-MM-DD"
+                    placeholder="Pick ${field.label}"
+                  >
+                  </el-date-picker>
+#end## A-3-1-1-2-1-1
+#else## A-3-1-1-2-1
+#if($field.formProperties.editable)## A-3-1-1-2-1-1
+                  <el-date-picker
+                    v-model="${mainModel.camelCaseModelName}FormModel.${field.property}"
+                    type="datetime"
+                    clearable
+                    format="YYYY-MM-DD HH:mm:ss"
+                    value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
+                    placeholder="Pick ${field.label}"
+                  >
+                  </el-date-picker>
+#else## A-3-1-1-2-1-1
+                  <el-date-picker
+                    v-model="${mainModel.camelCaseModelName}FormModel.${field.property}"
+                    type="datetime"
+                    clearable
+                    :disabled="dialogUseFor == 'edit'"
+                    format="YYYY-MM-DD HH:mm:ss"
+                    value-format="YYYY-MM-DDTHH:mm:ss.SSSZ"
+                    placeholder="Pick ${field.label}"
+                  >
+                  </el-date-picker>
+#end## A-3-1-1-2-1-1
+#end## A-3-1-1-2-1
+#else## A-3-1-1-2
+#if($field.formProperties.inputType == "select")## A-3-1-1-2-1
+#if($field.formProperties.editable)## A-3-1-1-2-1-1
+                  <el-select v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" style="width: 100%" clearable placeholder="Select ${field.label}">
+                    <!-- <el-option label="" value=""> </el-option> -->
+                  </el-select>
+#else## A-3-1-1-2-1-1
+                  <el-select v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" style="width: 100%" clearable :disabled="dialogUseFor == 'edit'" placeholder="Select ${field.label}">
+                    <!-- <el-option label="" value=""> </el-option> -->
+                  </el-select>
+#end## A-3-1-1-2-1-1
+#elseif($fieldValueType == "number")## A-3-1-1-2-1
+#if($field.formProperties.editable)## A-3-1-1-2-1-1
+                  <el-input v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" :formatter="(value: string) => `${value}`.replace(/[^\d\.]/g, '')" :parser="(value: string) => `${value}`.replace(/[^\d\.]/g, '')" placeholder="Input ${field.label}"></el-input>
+#else## A-3-1-1-2-1-1
+                  <el-input v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" :formatter="(value: string) => `${value}`.replace(/[^\d\.]/g, '')" :parser="(value: string) => `${value}`.replace(/[^\d\.]/g, '')" :disabled="dialogUseFor == 'edit'" placeholder="Input ${field.label}"></el-input>
+#end## A-3-1-1-2-1-1
+#elseif($fieldValueType == "string")## A-3-1-1-2-1
+#if($field.formProperties.editable)## A-3-1-1-2-1-1
+                  <el-input v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" placeholder="Input ${field.label}"></el-input>
+#else## A-3-1-1-2-1-1
+                  <el-input v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" :disabled="dialogUseFor == 'edit'" placeholder="Input ${field.label}"></el-input>
+#end## A-3-1-1-2-1-1
+#end## A-3-1-1-2-1
+#end## A-3-1-1-2
+                </el-form-item>
+            </el-col>
+#end## A-3-1-1
+#end## A-3-1
+#end## A-3
+        </el-row>
+      </el-form>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submit${mainModel.modelName}Form">Confirm</el-button>
+        <el-button @click="cancel${mainModel.modelName}Form">Cancel</el-button>
+      </div>
+    </el-dialog>
+#end## A
+  </div>
+</template>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped></style>

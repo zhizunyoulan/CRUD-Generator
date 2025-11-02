@@ -1,0 +1,302 @@
+#set( $D = '$' )
+<script setup lang="ts">
+#set($functions = [])
+#if( $readDefinition != $null )## A
+#if($functions.add(${readDefinition.functionName}))#end
+#end## A
+#if($deleteDefinition != $null)## A
+import { showConfirmDialog, showSuccessToast, showFailToast, DropdownMenu } from "vant";
+#if($functions.add(${deleteDefinition.functionName}))#end
+#end## A
+import { ref, useTemplateRef, onMounted } from "vue";
+import type { Ref } from 'vue'
+import { IonContent, IonPage } from "@ionic/vue";
+import YiList from '@/components/YiList.vue';
+#if( $createDefinition != $null )## A
+import { useRouter } from 'vue-router'
+#end## A
+import axiosInst from "@/utils/request";
+
+#if( $createDefinition != $null )## A
+const router = useRouter()
+#end## A
+const conditionMenuRef = useTemplateRef<typeof DropdownMenu>('conditionMenuRef')
+const listRef = useTemplateRef<typeof YiList>('listRef')
+const model: Ref<Record<string, any>> = ref({})
+const actionSheetVisible: Ref<boolean> = ref(false)
+const popupVisibleWrapper: Ref<Record<string, boolean>> = ref({})
+const datePickerValueWrapper: Ref<Record<string, string[] | undefined>> = ref({})
+
+function onConditionChange() {
+  listRef.value?.load();
+}
+
+onMounted(() => {
+  listRef.value?.load();
+})
+</script>
+
+<script lang="ts">
+#if($functions.size() > 0)## A
+import ${mainModel.camelCaseModelName}Apis from '@/$myTool.pathOf("src").relativize($myTool.relativePathOf("FRONTEND_API")).trimExt()'
+const { #foreach ($functionName in $functions)${functionName}#if( !$foreach.last ),#end#end } = ${mainModel.camelCaseModelName}Apis
+#end## A
+export default {
+  name: '${mainModel.modelName}View',
+#if($functions.size() > 0)## A
+  apis: {
+#foreach ($functionName in $functions)## A-1
+    ${functionName}#if( !$foreach.last ),#end
+#end## A-1
+  },
+#end## A
+}
+</script>
+#set( $conditionFields = $readDefinition.conditionFields )
+<template>
+  <ion-page>
+    <ion-content :fullscreen="true">
+#if($conditionFields.size() > 0)## A
+      <van-dropdown-menu ref="conditionMenuRef">
+#foreach ($field in $conditionFields)## A-1
+#if($field.primaryKey == false && $field.conditionProperties.compareType != 'isNull' && $field.conditionProperties.compareType != 'isNotNull')## A-1-1
+#if($field.conditionProperties.propAlias != $null)## A-1-1-1
+#set( $propAlias = ${field.conditionProperties.propAlias} )
+#else## A-1-1-1
+#set( $propAlias = ${field.property} )
+#end## A-1-1-1
+#if($field.conditionProperties.labelAlias != $null)## A-1-1-2
+#set( $labelAlias = ${field.conditionProperties.labelAlias} )
+#else## A-1-1-2
+#set( $labelAlias = ${field.label} )
+#end## A-1-1-2
+#set($fieldValueType=$myTool.getTsTypeForJavaType($field.javaType))
+#if($field.conditionProperties.inputType == "input")## A-1-1-3
+        <van-dropdown-item
+          title="$labelAlias"
+          class="mobile-dropdown"
+        >
+#if($fieldValueType == "boolean")## A-1-1-3-1
+          <van-cell center title="$labelAlias">
+            <template #right-icon>
+              <van-switch v-model="model.${propAlias}" />
+            </template>
+          </van-cell>
+#elseif($fieldValueType == "Date")## A-1-1-3-1
+          <van-cell center title="$labelAlias">
+            <template #right-icon>
+              <van-field v-model="model.${propAlias}" is-link readonly
+                @click="popupVisibleWrapper.${propAlias} = true"
+              />
+              <van-popup v-model:show="popupVisibleWrapper.${propAlias}" destroy-on-close position="bottom">
+                <van-date-picker
+                  :model-value="datePickerValueWrapper.${propAlias}"
+                  @confirm="
+                    ({ selectedValues }) => {
+                      model.${propAlias} = selectedValues.join('-')
+                      datePickerValueWrapper.${propAlias} = selectedValues
+                      popupVisibleWrapper.${propAlias} = false
+                    }
+                  "
+                  @cancel="popupVisibleWrapper.${propAlias} = false"
+                />
+              </van-popup>
+            </template>
+          </van-cell>
+#else## A-1-1-3-1
+          <van-cell center>
+            <template #right-icon>
+              <van-field
+                v-model="model.${propAlias}"
+                title="$labelAlias"
+                clearable
+              />
+            </template>
+          </van-cell>
+#end## A-1-1-3-1
+          <div style="padding: 5px 16px">
+            <van-button type="primary" block round @click="() => {
+              onConditionChange()
+              if(conditionMenuRef) {
+                conditionMenuRef.close()
+              }
+            }"> 确认 </van-button>
+          </div>
+        </van-dropdown-item>
+#else## A-1-1-3
+        <van-dropdown-item
+          title="$labelAlias"
+          v-model="model.${propAlias}"
+          :options="[
+            {
+              text: '全部',
+              value: '0',
+            },
+          ]"
+          class="mobile-dropdown"
+          @change="onConditionChange"
+        />
+#end## A-1-1-3
+#end## A-1-1
+#end## A-1
+      </van-dropdown-menu>
+#end## A
+#set( $listHeight = 0 )
+#if($conditionFields != $null && $conditionFields.size() > 0)## A
+#set( $listHeight = $listHeight + 48 )
+#end## A
+#if($createDefinition != $null)## A
+#set( $listHeight = $listHeight + 44 )
+#end## A
+      <YiList
+        ref="listRef"
+        :api="() => {
+          let params: Record<string, any> = { ...model }
+#foreach ($field in $conditionFields)## A
+#if($field.primaryKey == false)## A-1
+#if($field.conditionProperties.compareType == 'between')## A-1-1
+#if($field.conditionProperties.propAlias != $null)## A-1-1-1
+#set( $propAlias = ${field.conditionProperties.propAlias} )
+#else## A-1-1-1
+#set( $propAlias = ${field.property} )
+#end## A-1-1-1
+          if (Array.isArray(params.$propAlias)) {
+            params.${propAlias}Start = params.${propAlias}[0]
+            params.${propAlias}End = params.${propAlias}[1]
+            delete params.$propAlias
+          }
+#end## A-1-1
+#end## A-1
+#end## A
+          return ${readDefinition.functionName}(params)
+        }"
+#if($listHeight > 0)## A
+        height="calc(100% - ${listHeight}px)"
+#end## A
+      >
+        <template #default="{ list, load }">
+#set($visibleFieldCount = 0)
+#set($extraVisibleFields = [])
+#foreach ($field in $readDefinition.resultFields)## A
+#if($field.selectProperties.visible)## A-1
+#if($visibleFieldCount == 0)## A-1-1
+#set($cellTitleProperty = $field.property)
+#elseif($visibleFieldCount == 1)## A-1-1
+#set($cellLabelProperty = $field.property)
+#else## A-1-1
+#if($extraVisibleFields.add($field))#end
+#end## A-1-1
+#set($visibleFieldCount = $visibleFieldCount + 1)
+#end## A-1
+#end## A
+#if($updateDefinition != $null || $deleteDefinition != $null)## A
+#if($updateDefinition != $null && $deleteDefinition != $null)## A-1
+#set($rightWidth = 120)
+#else## A-1
+#set($rightWidth = 60)
+#end## A-1
+          <van-swipe-cell v-for="(item, index) in list" :key="index" :right-width="${rightWidth}">
+            <van-cell
+#if($cellTitleProperty != $null)## A-2
+              :title="item.${cellTitleProperty}"
+#end## A-2
+#if($cellLabelProperty != $null)## A-3
+              :label="item.${cellLabelProperty}"
+#end## A-3
+            >
+#foreach ($extraField in $extraVisibleFields)## A-4
+              <div>
+                <van-tag type="success">{{ item.${extraField.property} }}</van-tag>
+              </div>
+#end## A-4
+            </van-cell>
+            <template #right>
+#if($updateDefinition != $null)## A-5
+              <van-button
+                type="warning"
+                class="swipe-button"
+                @click="
+                  () => {
+                    router.push({
+                      name: '${mainModel.modelName}Form',
+                      params: {
+                        useFor: 'edit'
+                      },
+                      query: item
+                    })
+                  }
+                "
+              >
+                编辑
+              </van-button>
+#end## A-5
+#if($deleteDefinition != $null)## A-6
+#set($idArgs = [])
+#foreach ($primaryKeyField in $mainModel.primaryKeyFields)## A-6-1
+#set($idArg = "item.${primaryKeyField.property}")
+#if($idArgs.add(${idArg}))#end
+#end## A-6-1
+              <van-button class="swipe-button" type="danger" @click="() => {
+                showConfirmDialog({
+                  title: '提示',
+                  message: '是否删除该${mainModel.description}？',
+                })
+                  .then(() => {
+                    // on confirm
+                    axiosInst.request(${deleteDefinition.functionName}(#foreach($idArg in $idArgs)${idArg}#if( !$foreach.last ),#end#end)).then(() => {
+                      showSuccessToast('删除成功');
+                      load();
+                    })
+                  })
+                  .catch(() => {
+                    // on cancel
+                    showFailToast('删除失败');
+                  });
+              }">
+                  删除
+              </van-button>
+#end## A-6
+            </template>
+          </van-swipe-cell>
+#else## A
+            <van-cell
+              v-for="(item, index) in list"
+              :key="index"
+          #if($cellTitleProperty != $null)
+              :title="item.${cellTitleProperty}"
+          #end
+          #if($cellLabelProperty != $null)
+              :label="item.${cellLabelProperty}"
+          #end
+            >
+#foreach ($extraField in $extraVisibleFields)## A-1
+              <div>
+                <van-tag type="success">{{ item.${extraField.property} }}</van-tag>
+              </div>
+#end## A-1
+            </van-cell>
+#end## A
+        </template>
+      </YiList>
+#if($createDefinition != $null)## A
+      <van-button
+        type="primary"
+        block
+        @click="
+          () => {
+            router.push({
+              name: '${mainModel.modelName}Form',
+              params: {
+                useFor: 'add'
+              }
+            })
+          }
+        "
+      >添加</van-button>
+#end## A
+    </ion-content>
+  </ion-page>
+</template>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped></style>

@@ -1,0 +1,103 @@
+package ${currentClass.packageName};
+
+import ${groupId}.security.api.annotation.NeedPermissions;
+import ${groupId}.security.syslog.annotation.SysLog;
+import ${groupId}.web.constants.ValidationGroups;
+import ${groupId}.web.vo.PageData;
+import ${groupId}.web.vo.R;
+import ${mainModelClass.qualifiedName};
+#if(${requestModelClass.simpleName} != ${mainModelClass.simpleName})## A
+#if($requestModelClass != $null)## A-1
+import ${requestModelClass.qualifiedName};
+#end## A-1
+#if(${resultModelClass.simpleName} != ${mainModelClass.simpleName} && ${resultModelClass.simpleName} != ${requestModelClass.simpleName})## A-2
+import ${resultModelClass.qualifiedName};
+#end## A-2
+#elseif(${resultModelClass.simpleName} != ${mainModelClass.simpleName})## A
+import ${resultModelClass.qualifiedName};
+#end## A
+import ${serviceClass.qualifiedName};
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+#foreach ($importType in $currentClass.dynamicImports)## A
+import ${importType};
+#end## A
+import java.util.List;
+
+@Api("${mainModel.description}相关接口")
+@RestController
+@RequestMapping("${mainModel.kebabCaseModelName}")
+public class ${currentClass.simpleName} {
+
+    @Autowired
+    ${serviceClass.simpleName} ${mainModel.camelCaseModelName}Service;
+
+#if($readDefinition != $null)## A
+#if(!$readDefinition.singleResult)## A-1
+#if($requestModelClass != $null)## A-1-1
+    @ApiOperation("查询${mainModel.description}列表")
+    @GetMapping
+    @NeedPermissions("${module}:${mainModel.kebabCaseModelName}:read")
+    public R<PageData<${resultModelClass.simpleName}>> ${readDefinition.functionName}(${requestModelClass.simpleName} #toLowerCamelCase(${requestModelClass.simpleName})) {
+        List<${resultModelClass.simpleName}> ${mainModel.camelCaseModelName}List = ${mainModel.camelCaseModelName}Service.${readDefinition.functionName}(#toLowerCamelCase(${requestModelClass.simpleName}));
+        return R.ok(PageData.getInstance(${mainModel.camelCaseModelName}List));
+    }
+
+#{else}## A-1-1
+    @ApiOperation("查询${mainModel.description}列表")
+    @GetMapping
+    @NeedPermissions("${module}:${mainModel.kebabCaseModelName}:read")
+    public R<PageData<${resultModelClass.simpleName}>> ${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)#if(${requestParamField.jdbcType} == 'DATE' || ${requestParamField.jdbcType} == 'TIMESTAMP' || ${requestParamField.jdbcType} == 'TIME')#if($requestParamField.format == "DATE")@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)#elseif($requestParamField.format == "TIME")@DateTimeFormat(iso = DateTimeFormat.ISO.TIME)#else@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)#end #end#getJavaTypeSimpleName(${requestParamField.javaType}) $requestParamField.property#{if}( !$foreach.last ), #end#end) {
+        List<${resultModelClass.simpleName}> ${mainModel.camelCaseModelName}List = ${mainModel.camelCaseModelName}Service.${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)$requestParamField.property#{if}( !$foreach.last ), #end#end);
+        return R.ok(PageData.getInstance(${mainModel.camelCaseModelName}List));
+    }
+
+#end## A-1-1
+#else## A-1
+    @ApiOperation("查询${mainModel.description}")
+    @GetMapping
+    @NeedPermissions("${module}:${mainModel.kebabCaseModelName}:read")
+    public R<${resultModelClass.simpleName}> ${readDefinition.functionName}(${requestModelClass.simpleName} #toLowerCamelCase(${requestModelClass.simpleName})) {
+        ${resultModelClass.simpleName} ${mainModel.camelCaseModelName} = ${mainModel.camelCaseModelName}Service.${readDefinition.functionName}(#toLowerCamelCase(${requestModelClass.simpleName}));
+        return R.ok(${mainModel.camelCaseModelName});
+    }
+
+#end## A-1
+#end## A
+#if($createDefinition != $null)## A
+    @ApiOperation("创建${mainModel.description}")
+    @SysLog("创建${mainModel.description}")
+    @PostMapping
+    @NeedPermissions("${module}:${mainModel.kebabCaseModelName}:create")
+    public R<String> ${createDefinition.functionName}(@Validated(ValidationGroups.Create.class) @RequestBody ${mainModelClass.simpleName} ${mainModel.camelCaseModelName}) {
+        ${mainModel.camelCaseModelName}Service.${createDefinition.functionName}(${mainModel.camelCaseModelName});
+        return R.ok("OK");
+    }
+
+#end## A
+#if($updateDefinition != $null)## A
+    @ApiOperation("修改${mainModel.description}")
+    @SysLog("修改${mainModel.description}")
+    @PutMapping
+    @NeedPermissions("${module}:${mainModel.kebabCaseModelName}:update")
+    public R<String> ${updateDefinition.functionName}(@Validated(ValidationGroups.Update.class) @RequestBody ${mainModelClass.simpleName} ${mainModel.camelCaseModelName}) {
+        ${mainModel.camelCaseModelName}Service.${updateDefinition.functionName}(${mainModel.camelCaseModelName});
+        return R.ok("OK");
+    }
+
+#end## A
+#if($deleteDefinition != $null)## A
+    @ApiOperation("删除${mainModel.description}")
+    @SysLog("删除${mainModel.description}")
+    @DeleteMapping("#foreach($primaryKeyField in $mainModel.primaryKeyFields){${primaryKeyField.property}}#if( !$foreach.last )/#end#end")
+    @NeedPermissions("${module}:${mainModel.kebabCaseModelName}:delete")
+    public R<String> ${deleteDefinition.functionName}(#foreach($primaryKeyField in $mainModel.primaryKeyFields)@PathVariable("${primaryKeyField.property}") #getJavaTypeSimpleName(${primaryKeyField.javaType}) $primaryKeyField.property#if( !$foreach.last ), #end#end) {
+        ${mainModel.camelCaseModelName}Service.${deleteDefinition.functionName}(#foreach($primaryKeyField in $mainModel.primaryKeyFields)$primaryKeyField.property#if( !$foreach.last ), #end#end);
+        return R.ok("OK");
+    }
+
+#end## A
+}

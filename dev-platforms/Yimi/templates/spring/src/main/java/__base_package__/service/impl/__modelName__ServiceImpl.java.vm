@@ -1,0 +1,118 @@
+package ${currentClass.packageName};
+
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import ${groupId}.core.exception.UndefinedException;
+import ${mainModelClass.qualifiedName};
+#if(${requestModelClass.simpleName} != ${mainModelClass.simpleName})## A
+#if($requestModelClass != $null)## A-1
+import ${requestModelClass.qualifiedName};
+#end## A-1
+#if(${resultModelClass.simpleName} != ${mainModelClass.simpleName} && ${resultModelClass.simpleName} != ${requestModelClass.simpleName})## A-2
+import ${resultModelClass.qualifiedName};
+#end## A-2
+#elseif(${resultModelClass.simpleName} != ${mainModelClass.simpleName})## A
+import ${resultModelClass.qualifiedName};
+#end## A
+import ${mapperClass.qualifiedName};
+import ${serviceClass.qualifiedName};
+import org.springframework.stereotype.Service;
+#foreach ($importType in $currentClass.dynamicImports)## A
+import ${importType};
+#end## A
+import java.util.*;
+
+@Service
+public class ${currentClass.simpleName} extends ServiceImpl<${mapperClass.simpleName}, ${mainModelClass.simpleName}> implements ${serviceClass.simpleName} {
+
+#if($readDefinition != $null)## A
+#if(!$readDefinition.singleResult)## A-1
+    @Override
+#if($requestModelClass != $null)## A-1-1
+    public List<${resultModelClass.simpleName}> ${readDefinition.functionName}(${requestModelClass.simpleName} #toLowerCamelCase(${requestModelClass.simpleName})) {
+        List<${resultModelClass.simpleName}> ${mainModel.camelCaseModelName}s = baseMapper.${readDefinition.functionName}(#toLowerCamelCase(${requestModelClass.simpleName}));
+#else## A-1-1
+    public List<${resultModelClass.simpleName}> ${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)#getJavaTypeSimpleName(${requestParamField.javaType}) $requestParamField.property#{if}( !$foreach.last ), #end#end) {
+        List<${resultModelClass.simpleName}> ${mainModel.camelCaseModelName}s = baseMapper.${readDefinition.functionName}(#foreach($requestParamField in $readDefinition.requestParamFields)$requestParamField.property#{if}( !$foreach.last ), #end#end);
+#end## A-1-1
+#if($readDefinition.recursiveNestedField != $null && !$readDefinition.recursiveNestedField.lazy)## A-1-2
+#set($primaryKeyField = $mainModel.getPrimaryKeyField())
+#set($parentIdGetterName = "get#toUpperCamelCase($readDefinition.recursiveNestedField.foreignProperty)")
+        Map<#getJavaTypeSimpleName( $primaryKeyField.javaType ),${mainModelClass.simpleName}> ${mainModel.camelCaseModelName}Map = new HashMap<>();
+        List<${mainModelClass.simpleName}> ${mainModel.camelCaseModelName}Tree = new ArrayList<>();
+        for (${mainModelClass.simpleName} ${mainModel.camelCaseModelName}Item : ${mainModel.camelCaseModelName}s) {
+            if (${mainModel.camelCaseModelName}Item.${parentIdGetterName}() == null) {
+                ${mainModel.camelCaseModelName}Tree.add(${mainModel.camelCaseModelName}Item);
+                ${mainModel.camelCaseModelName}Map.put(${mainModel.camelCaseModelName}Item.#getFieldGetterName($primaryKeyField)(), ${mainModel.camelCaseModelName}Item);
+            }
+        }
+        Set<#getJavaTypeSimpleName( $primaryKeyField.javaType )> processedIds = new HashSet<>();
+        boolean foundAtLeastOne;
+        do {
+            foundAtLeastOne = false;
+            for (${mainModelClass.simpleName} ${mainModel.camelCaseModelName}Item : ${mainModel.camelCaseModelName}s) {
+                if (${mainModel.camelCaseModelName}Item.${parentIdGetterName}() != null && !processedIds.contains(${mainModel.camelCaseModelName}Item.#getFieldGetterName($primaryKeyField)())) {
+                    ${mainModelClass.simpleName} parent${mainModelClass.simpleName} = ${mainModel.camelCaseModelName}Map.get(${mainModel.camelCaseModelName}Item.${parentIdGetterName}());
+                    if (parent${mainModelClass.simpleName} != null) {
+                        foundAtLeastOne = true;
+#set($recursiveNestedFieldGetterName = "get#toUpperCamelCase($readDefinition.recursiveNestedField.property)")
+#set($recursiveNestedFieldSetterName = "set#toUpperCamelCase($readDefinition.recursiveNestedField.property)")
+                        if (parent${mainModelClass.simpleName}.${recursiveNestedFieldGetterName}() == null) {
+                            parent${mainModelClass.simpleName}.${recursiveNestedFieldSetterName}(new ArrayList<>());
+                        }
+                        parent${mainModelClass.simpleName}.${recursiveNestedFieldGetterName}().add(${mainModel.camelCaseModelName}Item);
+                        processedIds.add(${mainModel.camelCaseModelName}Item.#getFieldGetterName($primaryKeyField)());
+                        ${mainModel.camelCaseModelName}Map.put(${mainModel.camelCaseModelName}Item.#getFieldGetterName($primaryKeyField)(), ${mainModel.camelCaseModelName}Item);
+                    }
+                }
+            }
+        }while (foundAtLeastOne);
+        return ${mainModel.camelCaseModelName}Tree;
+#else## A-1-2
+        return ${mainModel.camelCaseModelName}s;
+#end## A-1-2
+    }
+
+#else## A-1
+    @Override
+    public ${resultModelClass.simpleName} ${readDefinition.functionName}(${requestModelClass.simpleName} #toLowerCamelCase(${requestModelClass.simpleName})) {
+        ${resultModelClass.simpleName} ${mainModel.camelCaseModelName} = baseMapper.${readDefinition.functionName}(#toLowerCamelCase(${requestModelClass.simpleName}));
+        return ${mainModel.camelCaseModelName};
+    }
+
+#end## A-1
+#end## A
+#if($createDefinition != $null)## A
+    @Override
+    public void ${createDefinition.functionName}(${mainModelClass.simpleName} ${mainModel.camelCaseModelName}) {
+        save(${mainModel.camelCaseModelName});
+    }
+
+#end## A
+#if($updateDefinition != $null)## A
+    @Override
+    public void ${updateDefinition.functionName}(${mainModelClass.simpleName} ${mainModel.camelCaseModelName}) {
+        int updated = baseMapper.updateById(${mainModel.camelCaseModelName});
+        if(updated == 0){
+            throw new UndefinedException("找不到${mainModel.description}");
+        }
+    }
+
+#end## A
+#if($deleteDefinition != $null)## A
+    @Override
+    public void ${deleteDefinition.functionName}(#foreach($primaryKeyField in $mainModel.primaryKeyFields)#getJavaTypeSimpleName(${primaryKeyField.javaType}) $primaryKeyField.property#if( !$foreach.last ), #end#end) {
+#if($mainModel.primaryKeyFields.size() == 1)## A-1
+        removeById(${mainModel.primaryKeyField.property});
+#elseif($mainModel.primaryKeyFields.size() > 1)## A-1
+        baseMapper.${deleteDefinition.functionName}(#foreach($primaryKeyField in $mainModel.primaryKeyFields)$primaryKeyField.property#if( !$foreach.last ), #end#end);
+#end## A-1
+    }
+
+#end## A
+}
+
+
+
+

@@ -36,6 +36,22 @@
   - [Vue 3 + TypeScript + Element Plus View Template](./built-in-templates/mybatis/front_end/admin/src/views/__module__/__kebabCaseModelName__/index.vue.vm)
   - [API Service Layer Template](./built-in-templates/mybatis/front_end/admin/src/apis/__module__/__kebabCaseModelName__.ts.vm)
 
+## 🏗️ Supported Development Platforms
+
+The following development platforms have ready-to-use template suites available:
+
+### [🚀 Yimi Framework](https://gitee.com/uublue/yimi-doc)
+- **Status**: ✅ Production Ready
+- **Configuration**: [`config.xml`](./dev-platforms/Yimi/templates/config.xml)
+- **Description**: Full-stack templates specifically designed for the Yimi Framework ecosystem, including optimized controllers, services, and frontend components.
+- **Features**: MyBatis integration, Vue 3 frontend, admin management templates
+
+### [🔄 JHipster](#)
+- **Status**: 🔄 In Preparation
+- **Description**: Template suite for JHipster-based projects, following JHipster conventions and best practices.
+- **Planned Features**: JPA entity templates, Liquibase migration scripts, Angular/React frontend support
+
+
 ## [⚙️ Configuration Guide](./config.md)
 - Multi-environment Configuration Details (admin, app, mini-program)
 - Custom Template Path Configuration

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="${mapperClass.qualifiedName}">
+
+#if($readDefinition != $null)## A
+    <resultMap id="${resultModelClass.simpleName}Map" type="${resultModelClass.qualifiedName}">
+        #mybatisResultMapFields( $readDefinition.resultFieldsTree )
+    </resultMap>
+
+#end## A
+#if($readDefinition != $null)## A
+#if($readDefinition.select.tableJoins.size() > 0)## A-1
+    <select id="${readDefinition.functionName}" resultMap="${resultModelClass.simpleName}Map">
+        select
+#foreach ($field in $readDefinition.select.selectFields)## A-1-1
+#if( $field.tableAlias != $null )## A-1-1-1
+#set( $tableAliasPosition = "${field.tableAlias}." )
+#else## A-1-1-1
+#set( $tableAliasPosition = "" )
+#end## A-1-1-1
+#if( $field.selectProperties.columnAlias != $null )## A-1-1-2
+#set( $propAliasPosition = " as ${field.selectProperties.columnAlias}" )
+#else## A-1-1-2
+#set( $propAliasPosition = "" )
+#end## A-1-1-2
+#if( $foreach.last )## A-1-1-3
+#set( $commaPosition = '' )
+#else## A-1-1-3
+#set( $commaPosition = ',' )
+#end## A-1-1-3
+            ${tableAliasPosition}${field.columnName}${propAliasPosition}${commaPosition}
+#end## A-1-1
+        from
+#foreach ($tableJoin in $readDefinition.select.tableJoins)## A-1-2
+#if( $foreach.first )## A-1-2-1
+            ${tableJoin.tableName} as ${tableJoin.tableAlias}
+            LEFT JOIN $tableJoin.relatedTableName as ${tableJoin.relatedTableAlias} ON ${tableJoin.tableAlias}.${tableJoin.columnName} = ${tableJoin.relatedTableAlias}.${tableJoin.relatedColumnName}
+#else## A-1-2-1
+            LEFT JOIN $tableJoin.relatedTableName as ${tableJoin.relatedTableAlias} ON ${tableJoin.tableAlias}.${tableJoin.columnName} = ${tableJoin.relatedTableAlias}.${tableJoin.relatedColumnName}
+#end## A-1-2-1
+#end## A-1-2
+#if( !$readDefinition.select.conditionFields.isEmpty() )## A-1-3
+        <where>
+#foreach ($field in $readDefinition.select.conditionFields)## A-1-3-1
+#if( $foreach.first )## A-1-3-1-1
+#set( $andPart = "" )
+#else## A-1-3-1-1
+#set( $andPart = "AND " )
+#end## A-1-3-1-1
+#set( $tableName = ${field.tableName} )
+#if($field.tableAlias != $null)## A-1-3-1-2
+#set( $tableName = ${field.tableAlias} )
+#end## A-1-3-1-2
+#if ( ${field.conditionProperties.compareType} == "between" )## A-1-3-1-3
+#set( $nestedProps = ${field.conditionProperties.betweenLeftProp.split("\.")} )
+             <if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$field.conditionProperties.betweenLeftProp != null and $field.conditionProperties.betweenRightProp != null">
+                ${andPart}${tableName}.$field.columnName between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
+             </if>
+#else## A-1-3-1-3
+#if($field.conditionProperties.propAlias != $null)## A-1-3-1-3-1
+#set( $propAlias = ${field.conditionProperties.propAlias} )
+#else## A-1-3-1-3-1
+#set( $propAlias = ${field.property} )
+#end## A-1-3-1-3-1
+#if(!$field.conditionProperties.required)## A-1-3-1-3-2
+#set( $nestedProps = ${propAlias.split("\.")} )
+             <if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$propAlias != null">
+#end## A-1-3-1-3-2
+#if( ${field.conditionProperties.compareType} == "gt" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName <![CDATA[>]]> #{$propAlias}
+#elseif ( ${field.conditionProperties.compareType} == "ge" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName <![CDATA[>=]]> #{$propAlias}
+#elseif ( ${field.conditionProperties.compareType} == "lt" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName <![CDATA[<]]> #{$propAlias}
+#elseif ( ${field.conditionProperties.compareType} == "le" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName <![CDATA[<=]]> #{$propAlias}
+#elseif ( ${field.conditionProperties.compareType} == "like" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName like concat('%', #{$propAlias}, '%')
+#elseif ( ${field.conditionProperties.compareType} == "likeLeft" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName like concat('%', #{$propAlias})
+#elseif ( ${field.conditionProperties.compareType} == "likeRight" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName like concat(#{$propAlias}, '%')
+#elseif ( ${field.conditionProperties.compareType} == "isNull" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName IS NULL
+#elseif ( ${field.conditionProperties.compareType} == "isNotNull" )## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName IS NOT NULL
+#else## A-1-3-1-3-3
+                ${andPart}${tableName}.$field.columnName = #{$propAlias}
+#end## A-1-3-1-3-3
+#if(!$field.conditionProperties.required)## A-1-3-1-3-4
+             </if>
+#end## A-1-3-1-3-4
+#end## A-1-3-1-3
+#end## A-1-3-1
+        </where>
+#end## A-1-3
+#if($readDefinition.orderFields.size() > 0)## A-1-4
+#set($dynamicOrderFields = [])
+#foreach($orderField in $readDefinition.orderFields)## A-1-4-1
+#if($orderField.orderProperties.dynamic)## A-1-4-1-1
+#if($dynamicOrderFields.add(${orderField}))#end
+#end## A-1-4-1-1
+#end## A-1-4-1
+#if($dynamicOrderFields.empty)## A-1-4-2
+        ORDER BY
+#foreach($orderField in $readDefinition.orderFields)## A-1-4-2-1
+#set( $tableName = ${orderField.tableName} )
+#if($orderField.tableAlias != $null)## A-1-4-2-1-1
+#set( $tableName = ${orderField.tableAlias} )
+#end## A-1-4-2-1-1
+        ${tableName}.${orderField.property}#{if}($orderField.orderProperties.desc) DESC#end#{if}( !$foreach.last ), #end
+#end## A-1-4-2-1
+#else## A-1-4-2
+        <trim prefix="ORDER BY" suffixOverrides=",">
+#foreach($orderField in $readDefinition.orderFields)## A-1-4-2-1
+#set( $tableName = ${orderField.tableName} )
+#if($orderField.tableAlias != $null)## A-1-4-2-1-1
+#set( $tableName = ${orderField.tableAlias} )
+#end## A-1-4-2-1-1
+#if($orderField.orderProperties.dynamic)## A-1-4-2-1-2
+            <if test="$readDefinition.orderByProp != null and $readDefinition.orderByProp == '${orderField.property}'">
+                ${tableName}.${orderField.property}
+                <choose>
+                    <when test="$readDefinition.orderProp == 'descending'">DESC</when>
+                    <otherwise>ASC</otherwise>
+                </choose>,
+            </if>
+#else## A-1-4-2-1-2
+            ${tableName}.${orderField.property}#if($orderField.orderProperties.desc) DESC#else ASC#end,
+#end## A-1-4-2-1-2
+#end## A-1-4-2-1
+        </trim>
+#end## A-1-4-2
+#end## A-1-4
+    </select>
+#else## A-1
+    <select id="${readDefinition.functionName}" resultMap="${resultModelClass.simpleName}Map">
+        select
+#foreach ($field in $readDefinition.select.selectFields)## A-1-1
+#if( $field.selectProperties.columnAlias != $null )## A-1-1-1
+#set( $propAliasPosition = " as ${field.selectProperties.columnAlias}" )
+#else## A-1-1-1
+#set( $propAliasPosition = "" )
+#end## A-1-1-1
+#if( $foreach.last )## A-1-1-2
+#set( $commaPosition = '' )
+#else## A-1-1-2
+#set( $commaPosition = ',' )
+#end## A-1-1-2
+            ${field.columnName}${propAliasPosition}${commaPosition}
+#end## A-1-1
+        from
+            ${mainModel.tableName}
+#if( !$readDefinition.select.conditionFields.isEmpty() )## A-1-2
+        <where>
+#foreach ($field in $readDefinition.select.conditionFields)## A-1-2-1
+#if( $foreach.first )## A-1-2-1-1
+#set( $andPart = "" )
+#else## A-1-2-1-1
+#set( $andPart = "AND " )
+#end## A-1-2-1-1
+#if ( ${field.conditionProperties.compareType} == "between" )## A-1-2-1-2
+#if($field.conditionProperties.betweenLeftProp != $null)## A-1-2-1-2-1
+#set( $betweenLeftProp = ${field.conditionProperties.betweenLeftProp} )
+#else## A-1-2-1-2-1
+#set( $betweenLeftProp = "${field.property}Start" )
+#end## A-1-2-1-2-1
+#set( $nestedProps = ${field.conditionProperties.betweenLeftProp.split("\.")} )
+             <if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$field.conditionProperties.betweenLeftProp != null and $field.conditionProperties.betweenRightProp != null">
+                ${andPart}$field.columnName between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
+             </if>
+#else## A-1-2-1-2
+#if($field.conditionProperties.propAlias != $null)## A-1-2-1-2-1
+#set( $propAlias = ${field.conditionProperties.propAlias} )
+#else## A-1-2-1-2-1
+#set( $propAlias = ${field.property} )
+#end## A-1-2-1-2-1
+#if(!$field.conditionProperties.required)## A-1-2-1-2-2
+#set( $nestedProps = ${propAlias.split("\.")} )
+             <if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$propAlias != null">
+#end## A-1-2-1-2-2
+#if( ${field.conditionProperties.compareType} == "gt" )## A-1-2-1-2-3
+                ${andPart}$field.columnName <![CDATA[>]]> #{$propAlias}
+#elseif ( ${field.conditionProperties.compareType} == "ge" )## A-1-2-1-2-3
+                ${andPart}$field.columnName <![CDATA[>=]]> #{$propAlias}
+#elseif ( ${field.conditionProperties.compareType} == "lt" )## A-1-2-1-2-3
+                ${andPart}$field.columnName <![CDATA[<]]> #{$propAlias}
+#elseif ( ${field.conditionProperties.compareType} == "le" )## A-1-2-1-2-3
+                ${andPart}$field.columnName <![CDATA[<=]]> #{$propAlias}
+#elseif ( ${field.conditionProperties.compareType} == "like" )## A-1-2-1-2-3
+                ${andPart}$field.columnName like concat('%', #{$propAlias}, '%')
+#elseif ( ${field.conditionProperties.compareType} == "likeLeft" )## A-1-2-1-2-3
+                ${andPart}$field.columnName like concat('%', #{$propAlias})
+#elseif ( ${field.conditionProperties.compareType} == "likeRight" )## A-1-2-1-2-3
+                ${andPart}$field.columnName like concat(#{$propAlias}, '%')
+#elseif ( ${field.conditionProperties.compareType} == "isNull" )## A-1-2-1-2-3
+                ${andPart}$field.columnName IS NULL
+#elseif ( ${field.conditionProperties.compareType} == "isNotNull" )## A-1-2-1-2-3
+                ${andPart}$field.columnName IS NOT NULL
+#else## A-1-2-1-2-3
+                ${andPart}$field.columnName = #{$propAlias}
+#end## A-1-2-1-2-3
+#if(!$field.conditionProperties.required)## A-1-2-1-2-4
+             </if>
+#end## A-1-2-1-2-4
+#end## A-1-2-1-2
+#end## A-1-2-1
+        </where>
+#end## A-1-2
+#if($readDefinition.orderFields.size() > 0)## A-1-3
+#set($dynamicOrderFields = [])
+#foreach($orderField in $readDefinition.orderFields)## A-1-3-1
+#if($orderField.orderProperties.dynamic)## A-1-3-1-1
+#if($dynamicOrderFields.add(${orderField}))#end
+#end## A-1-3-1-1
+#end## A-1-3-1
+#if($dynamicOrderFields.empty)## A-1-3-2
+        ORDER BY #foreach($orderField in $readDefinition.orderFields)${orderField.property}#{if}($orderField.orderProperties.desc) DESC#end#{if}( !$foreach.last ), #end#end
+#else## A-1-3-2
+        <trim prefix="ORDER BY" suffixOverrides=",">
+#foreach($orderField in $readDefinition.orderFields)## A-1-3-2-1
+#if($orderField.orderProperties.dynamic)## A-1-3-2-1-1
+            <if test="$readDefinition.orderByProp != null and $readDefinition.orderByProp == '${orderField.property}'">
+                ${orderField.property}
+                <choose>
+                    <when test="$readDefinition.orderProp == 'descending'">DESC</when>
+                    <otherwise>ASC</otherwise>
+                </choose>,
+            </if>
+#else## A-1-3-2-1-1
+            ${orderField.property}#if($orderField.orderProperties.desc) DESC#else ASC#end,
+#end## A-1-3-2-1-1
+#end## A-1-3-2-1
+        </trim>
+#end## A-1-3-2
+#end## A-1-3
+    </select>
+#end## A-1
+
+#end## A
+#if($deleteDefinition != $null && $mainModel.primaryKeyFields.size() > 1)## A
+    <delete id="${deleteDefinition.functionName}">
+        delete from $mainModel.tableName
+        <where>
+#foreach($primaryKeyField in $mainModel.primaryKeyFields)## A-1
+#if( $foreach.first )## A-1-1
+            ${primaryKeyField.columnName} = #{${primaryKeyField.property}}
+#else## A-1-1
+            AND ${primaryKeyField.columnName} = #{${primaryKeyField.property}}
+#end## A-1-1
+#end## A-1
+        </where>
+    </delete>
+
+#end## A
+</mapper>

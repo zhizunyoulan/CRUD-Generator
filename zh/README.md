@@ -40,6 +40,23 @@
   - [Vue 3 + TypeScript + Element Plus View模板](./built-in-templates/mybatis/front_end/admin/src/views/__module__/__kebabCaseModelName__/index.vue.vm)
   - [API调用层模板](./built-in-templates/mybatis/front_end/admin/src/apis/__module__/__kebabCaseModelName__.ts.vm)
 
+  
+## 🏗️ 支持的开发平台
+
+以下开发平台已提供现成的模板套件：
+
+### [🚀 Yimi框架](https://gitee.com/uublue/yimi-doc)
+- **状态**: ✅ 生产就绪
+- **配置文件**: [`config.xml`](./dev-platforms/Yimi/templates/config.xml)
+- **描述**: 专为Yimi框架生态系统设计的全栈模板，包括优化的控制器、服务和前端组件。
+- **特性**: MyBatis集成, Vue 3前端, 后台管理模板
+
+### [🔄 JHipster](#)
+- **状态**: 🔄 准备中
+- **描述**: 用于JHipster项目的模板套件，遵循JHipster的约定和最佳实践。
+- **计划特性**: JPA实体模板, Liquibase迁移脚本, Angular/React前端支持
+
+
 ## [⚙️ 配置文件指南](./config.md)
 - 多环境配置详解 (admin, app, mini-program)
 - 模板路径自定义配置

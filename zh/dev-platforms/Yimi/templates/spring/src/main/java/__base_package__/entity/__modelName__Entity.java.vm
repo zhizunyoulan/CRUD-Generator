@@ -1,0 +1,48 @@
+package ${currentClass.packageName};
+
+import ${currentModelClass.qualifiedName};
+import javax.persistence.*;
+import org.hibernate.annotations.Comment;
+#foreach ($importType in $currentClass.dynamicImports)## A
+import ${importType};
+#end## A
+
+@Entity(name = "${currentModel.tableName}")
+@org.hibernate.annotations.Table(appliesTo = "${currentModel.tableName}", comment = "${currentModel.description}")
+public class ${currentClass.simpleName} extends ${currentModelClass.simpleName} #if($currentModel.primaryKeyFields.size() > 1)implements Serializable#end{
+
+
+#foreach ($field in ${currentModel.fields})## A
+#if($field.exist)## A-1
+#if($field.primaryKey)## A-1-1
+    @Id
+#if($currentModel.primaryKeyFields.size() == 1)## A-1-1-1
+#set($primaryKeyField = ${currentModel.primaryKeyField})
+#if($primaryKeyField != $null && ($primaryKeyField.javaType == "java.lang.Long" || $primaryKeyField.javaType == "java.lang.Integer"))## A-1-1-1-1
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+#elseif($primaryKeyField != $null)## A-1-1-1-1
+    @GeneratedValue(strategy = GenerationType.AUTO)
+#end## A-1-1-1-1
+#end## A-1-1-1
+#else## A-1-1
+#set($_column_annotion_attributes = [])
+#if(!$field.nullable)## A-1-1-1
+#if($_column_annotion_attributes.add("nullable = false"))#end
+#end## A-1-1-1
+#if($field.unique)## A-1-1-2
+#if($_column_annotion_attributes.add("unique = true"))#end
+#end## A-1-1-2
+#if($_column_annotion_attributes.size() > 0)## A-1-1-3
+    @Column(#foreach ($_column_annotion_attribute in $_column_annotion_attributes)$_column_annotion_attribute#if(!$foreach.last), #end#end)
+#end## A-1-1-3
+#end## A-1-1
+    @Comment("${field.label}")
+    @Override
+    public #getJavaTypeSimpleName($field.javaType) #getFieldGetterName($field)() {
+        return super.#getFieldGetterName($field)();
+    }
+#end## A-1
+
+#end## A
+
+}

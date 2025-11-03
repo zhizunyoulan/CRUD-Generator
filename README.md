@@ -1,11 +1,11 @@
-# **CRUD Generator - Documentation Hub** [(中文文档)🔗](./zh/README.md)
+# **Yimi CRUD Generator - Documentation Hub** [(中文文档)🔗](./zh/README.md)
 
 > A visual code generation plugin for IntelliJ IDEA, supporting Spring Boot, MyBatis, JPA, and more.
 
 
 ## 🚀 Quick Start
 
-1.  **Install Plugin**: Install the `CRUD Generator` plugin from the JetBrains Marketplace.
+1.  **Install Plugin**: Install the `Yimi CRUD Generator` plugin from the JetBrains Marketplace.
 2.  **Create Configuration**: Create a `config.xml` file in your project root directory.
 3.  **Select Model**: Right-click a Model/Entity class in the IDE and select "Generate Code / CRUD".
 4.  **Orchestrate Functions**: Configure fields, query conditions, and sorting rules in the visual interface.

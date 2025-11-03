@@ -14,6 +14,9 @@ The `config.xml` file defines template configurations for the code generator, su
     
     <!-- Frontend template configuration -->
     <templates location="frontend">...</templates>
+
+    <!-- Backend groupId -->
+    <groupId>...</groupId>
 </config>
 ```
 
@@ -25,6 +28,11 @@ The `templates` node wraps a group of template definitions.
 - `location` (Required): Identifies template type
   - `backend`: Backend templates
   - `frontend`: Frontend templates
+
+## groupId Node (Optional)
+
+When the project is not built by maven (such as gradle), please configure this item to provide the name of the backend base package
+
 
 ## profile Node (Optional)
 

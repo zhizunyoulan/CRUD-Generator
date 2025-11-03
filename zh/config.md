@@ -14,6 +14,9 @@
     
     <!-- 前端模板配置 -->
     <templates location="frontend">...</templates>
+
+    <!-- 后端groupId -->
+    <groupId>...</groupId>
 </config>
 ```
 
@@ -25,6 +28,10 @@
 - `location` (必需): 标识模板类型
   - `backend`: 后端模板
   - `frontend`: 前端模板
+
+## groupId 节点（可选）
+
+项目不是由maven构建时（比如gradle），请配置该项，以提供后端基础包名
 
 ## profile 节点（可选）
 

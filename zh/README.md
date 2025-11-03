@@ -1,13 +1,13 @@
 
 
-# **智能代码生成器 (CRUD Generator) - 文档中心** [(English Document) 🔗](../README.md)
+# **智能代码生成器 (Yimi CRUD Generator) - 文档中心** [(English Document) 🔗](../README.md)
 
 > 一款基于IntelliJ IDEA的可视化代码生成插件，支持Spring, MyBatis, JPA等技术栈。
 
 
 ## 🚀 快速开始
 
-1. **安装插件**: 从JetBrains Marketplace安装`CRUD Generator`插件
+1. **安装插件**: 从JetBrains Marketplace安装`Yimi CRUD Generator`插件
 2. **创建配置**: 在项目根目录创建 `config.xml` 文件
 3. **选择模型**: 在IDE中右键点击Model/Entity类，选择"Generate Code / CRUD"
 4. **编排功能**: 在可视化界面中配置字段、查询条件、排序规则

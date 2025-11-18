@@ -16,7 +16,8 @@
 -   ✅ **Dual ORM Support**: Supports both MyBatis and JPA data models.
 -   ✅ **Visual Orchestration**: Graphically configure field behaviors and query logic.
 -   ✅ **Multi-Environment Generation**: Generate code for different clients (admin, app, etc.).
--   ✅ **Template Customization**: Supports custom Velocity templates.
+-   ✅ **Custom Variables**: Add extended properties to functions and fields with dependency support **[NEW]**
+-   ✅ **Template Customization**: Support custom Velocity templates with multi-client template group management **[ENHANCED]**
 
 
 ## [🧩 Environment Variables Reference](./env-variables.md)
@@ -24,6 +25,10 @@
 - Detailed explanation of functional definition objects: `readDefinition`, `createDefinition`, etc.
 - `myTool` utility function API reference
 - Examples of using these variables in Velocity templates
+
+## 🛠️ Advanced Customization **[NEW]**
+- [Custom Variables & Templates](./custom/variables.md)
+- [Template Management Guide](./custom/templates.md)
 
 ## 💻 Built-in Template Library
 

@@ -26,20 +26,9 @@
 #end## A
 #set( $nestedConditionFields = ${myTool.deduplicate($nestedConditionFields)} )
 
-#set($dynamicOrderFields = [])
-#set($dynamicOrderFieldIds = [])
-#foreach($orderField in $readDefinition.orderFields)## A
-#if($orderField.orderProperties.dynamic)## A-1
-#if($dynamicOrderFields.add(${orderField}))#end
-#if($dynamicOrderFieldIds.add(${orderField.id}))#end
-#end## A-1
-#end## A
 import type { Ref } from 'vue'
 import { ref, computed, nextTick, useTemplateRef, onMounted } from 'vue'
 import { ElTable, ElForm, ElDialog, ElMessageBox, ElMessage } from 'element-plus'
-#if(!$dynamicOrderFields.empty)## A
-import type { Sort } from 'element-plus'
-#end## A
 import axiosInst from "@/utils/request";
 import ${mainModel.camelCaseModelName}Apis from '@/$myTool.pathOf("src").relativize($myTool.relativePathOf("FRONTEND_API")).trimExt()'
 
@@ -56,9 +45,6 @@ const queryModel: Ref<Record<string, any>> = ref({})
 #end## A
 // Sorting param
 
-#if(!$dynamicOrderFields.empty)## A
-const sort: Ref<Sort | undefined> = ref()
-#end## A
 const loading = ref(false)
 // Query result
 #if($readDefinition.singleResult && $requestModelClass == $null)## A
@@ -90,15 +76,7 @@ function handleQuery() {
   const requestConfig = ${readDefinition.functionName}(#foreach($pathParamField in $pathParamFields)queryModel.value.${pathParamField.property}#if( !$foreach.last ),#end#end)
 #if($otherParamFields.empty)## A-2
   loading.value = true
-#if($dynamicOrderFields.empty)## A-2-1
   axiosInst.request(requestConfig).then((res) => {
-#else## A-2-1
-  const params = {
-    $readDefinition.orderByProp: sort.value?.prop,
-    $readDefinition.orderProp: sort.value?.order
-  }
-  axiosInst.request({...requestConfig, params}).then((res) => {
-#end## A-2-1
     result.value = res.data
     loading.value = false
   }).catch(() => {
@@ -123,12 +101,6 @@ function handleQuery() {
   params.${field.property} = queryModel.value.${field.property}
 #end## A-2-1-1
 #end## A-2-1
-#if(!$dynamicOrderFields.empty)## A-2-2
-  if(sort.value) {
-    params.$readDefinition.orderByProp = sort.value.prop
-    params.$readDefinition.orderProp = sort.value.order
-  }
-#end## A-2-2
   loading.value = true
   axiosInst.request({...requestConfig, params}).then((res) => {
     resultList.value = res.data
@@ -159,12 +131,6 @@ function handleQuery() {
   }
 #end## A-2-1
 #end## A-2
-#if(!$dynamicOrderFields.empty)## A-3
-  if(sort.value) {
-    params.$readDefinition.orderByProp = sort.value.prop
-    params.$readDefinition.orderProp = sort.value.order
-  }
-#end## A-3
   loading.value = true
   axiosInst.request({...${readDefinition.functionName}, params}).then((res) => {
     resultList.value = res.data
@@ -172,20 +138,6 @@ function handleQuery() {
   }).catch(() => {
     loading.value = false
   });
-}
-#end## A
-
-#if(!$dynamicOrderFields.empty)## A
-function onSortChange({ prop, order }: Sort) {
-  if(prop) {
-    sort.value = undefined
-  }else {
-    sort.value = {
-      prop,
-      order
-    }
-  }
-  handleQuery()
 }
 #end## A
 
@@ -451,9 +403,6 @@ export default {
 #end## A-1-2
       }"
 #end## A-1
-#if(!$dynamicOrderFields.empty)## A-2
-      @sort-change="onSortChange"
-#end## A-2
     >
 ## Table columns
 #foreach ($field in $readDefinition.resultFields)## A-3
@@ -468,7 +417,7 @@ export default {
 #else## A-3-1-2
 #set( $labelAlias = ${field.label} )
 #end## A-3-1-2
-      <el-table-column label="$labelAlias" prop="$propAlias" #if($dynamicOrderFieldIds.contains($field.id))sortable #else #end/>
+      <el-table-column label="$labelAlias" prop="$propAlias" />
 #end## A-3-1
 #end## A-3
 #if( $updateDefinition != $null || $deleteDefinition != $null || ($readDefinition.recursiveNestedField != $null && $createDefinition != $null) )## A-4

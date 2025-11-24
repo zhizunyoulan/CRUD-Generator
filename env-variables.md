@@ -111,8 +111,6 @@ public class $mainModelClass.simpleName Controller {
 **Fields:**
 *   `functionName` (String): The core name of the function (e.g., `getUserList`).
 *   `singleResult` (Boolean): Query scope (`'list'` or `'one'`), `true` for single item query, `false` for list query.
-*   `orderByProp` (String): Sort field name (nullable).
-*   `orderProp` (String): Sort order (nullable).
 *   `description` (String): Description of the function.
 *   `selectFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): **All** fields that need to be selected.
 *   `resultFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): Fields contained in the final result entity.

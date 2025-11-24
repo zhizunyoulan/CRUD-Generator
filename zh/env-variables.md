@@ -33,10 +33,10 @@ public class $mainModelClass.simpleNameController {
 | `serviceImplClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | Service 实现类信息 |
 | `requestModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **Yes** | 查询参数类信息。**若为空，表示参数为分散字段** |
 | `resultModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | 查询结果类信息 |
-| `readDefinition` | [`ReadDefinition`](#341-readdefinition-查询功能) | Yes | **【查询】**功能定义 |
-| `createDefinition` | [`CreateDefinition`](#342-createdefinition-创建功能) | Yes | **【创建】**功能定义 |
-| `updateDefinition` | [`UpdateDefinition`](#343-updatedefinition-修改功能) | Yes | **【修改】**功能定义 |
-| `deleteDefinition` | [`DeleteDefinition`](#344-deletedefinition-删除功能) | Yes | **【删除】**功能定义 |
+| `readDefinition` | [`ReadDefinition`](#341-readdefinition-查询功能) | Yes | 【查询】功能定义 |
+| `createDefinition` | [`CreateDefinition`](#342-createdefinition-创建功能) | Yes | 【创建】功能定义 |
+| `updateDefinition` | [`UpdateDefinition`](#343-updatedefinition-修改功能) | Yes | 【修改】功能定义 |
+| `deleteDefinition` | [`DeleteDefinition`](#344-deletedefinition-删除功能) | Yes | 【删除】功能定义 |
 | `currentClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **Yes** | **当前模板**对应的 Java 类信息 (**仅后端 Java 类模板中不为空**) |
 | `currentModel` | [`ModelDefinition`](#31-核心模型对象-modeldefinition) | **No** | **当前模板**对应的模型信息 (Model/Entity 模板可用) |
 | `currentModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | **当前模板**对应的模型 Java 类信息 (Model/Entity 模板可用) |
@@ -111,8 +111,6 @@ public class $mainModelClass.simpleNameController {
 **字段:**
 *   `functionName` (String): 功能的核心名称 (e.g., `getUserList`).
 *   `singleResult` (Boolean): 查询范围 (`'list'` 或 `'one'`), `true`为查询单条，`false`为查询列表.
-*   `orderByProp` (String): 排序字段名（可空）.
-*   `orderProp` (String): 排序顺序（可空）.
 *   `description` (String): 功能的描述信息.
 *   `selectFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 需要检出的**所有**字段.
 *   `resultFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 最终结果实体中包含的字段.

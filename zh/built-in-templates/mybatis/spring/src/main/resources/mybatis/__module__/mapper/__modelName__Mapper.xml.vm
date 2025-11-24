@@ -96,44 +96,6 @@
 #end## A-1-3-1
         </where>
 #end## A-1-3
-#if($readDefinition.orderFields.size() > 0)## A-1-4
-#set($dynamicOrderFields = [])
-#foreach($orderField in $readDefinition.orderFields)## A-1-4-1
-#if($orderField.orderProperties.dynamic)## A-1-4-1-1
-#if($dynamicOrderFields.add(${orderField}))#end
-#end## A-1-4-1-1
-#end## A-1-4-1
-#if($dynamicOrderFields.empty)## A-1-4-2
-        ORDER BY
-#foreach($orderField in $readDefinition.orderFields)## A-1-4-2-1
-#set( $tableName = ${orderField.tableName} )
-#if($orderField.tableAlias != $null)## A-1-4-2-1-1
-#set( $tableName = ${orderField.tableAlias} )
-#end## A-1-4-2-1-1
-        ${tableName}.${orderField.property}#{if}($orderField.orderProperties.desc) DESC#end#{if}( !$foreach.last ), #end
-#end## A-1-4-2-1
-#else## A-1-4-2
-        <trim prefix="ORDER BY" suffixOverrides=",">
-#foreach($orderField in $readDefinition.orderFields)## A-1-4-2-1
-#set( $tableName = ${orderField.tableName} )
-#if($orderField.tableAlias != $null)## A-1-4-2-1-1
-#set( $tableName = ${orderField.tableAlias} )
-#end## A-1-4-2-1-1
-#if($orderField.orderProperties.dynamic)## A-1-4-2-1-2
-            <if test="$readDefinition.orderByProp != null and $readDefinition.orderByProp == '${orderField.property}'">
-                ${tableName}.${orderField.property}
-                <choose>
-                    <when test="$readDefinition.orderProp == 'descending'">DESC</when>
-                    <otherwise>ASC</otherwise>
-                </choose>,
-            </if>
-#else## A-1-4-2-1-2
-            ${tableName}.${orderField.property}#if($orderField.orderProperties.desc) DESC#else ASC#end,
-#end## A-1-4-2-1-2
-#end## A-1-4-2-1
-        </trim>
-#end## A-1-4-2
-#end## A-1-4
     </select>
 #else## A-1
     <select id="${readDefinition.functionName}" resultMap="${resultModelClass.simpleName}Map">
@@ -209,33 +171,6 @@
 #end## A-1-2-1
         </where>
 #end## A-1-2
-#if($readDefinition.orderFields.size() > 0)## A-1-3
-#set($dynamicOrderFields = [])
-#foreach($orderField in $readDefinition.orderFields)## A-1-3-1
-#if($orderField.orderProperties.dynamic)## A-1-3-1-1
-#if($dynamicOrderFields.add(${orderField}))#end
-#end## A-1-3-1-1
-#end## A-1-3-1
-#if($dynamicOrderFields.empty)## A-1-3-2
-        ORDER BY #foreach($orderField in $readDefinition.orderFields)${orderField.property}#{if}($orderField.orderProperties.desc) DESC#end#{if}( !$foreach.last ), #end#end
-#else## A-1-3-2
-        <trim prefix="ORDER BY" suffixOverrides=",">
-#foreach($orderField in $readDefinition.orderFields)## A-1-3-2-1
-#if($orderField.orderProperties.dynamic)## A-1-3-2-1-1
-            <if test="$readDefinition.orderByProp != null and $readDefinition.orderByProp == '${orderField.property}'">
-                ${orderField.property}
-                <choose>
-                    <when test="$readDefinition.orderProp == 'descending'">DESC</when>
-                    <otherwise>ASC</otherwise>
-                </choose>,
-            </if>
-#else## A-1-3-2-1-1
-            ${orderField.property}#if($orderField.orderProperties.desc) DESC#else ASC#end,
-#end## A-1-3-2-1-1
-#end## A-1-3-2-1
-        </trim>
-#end## A-1-3-2
-#end## A-1-3
     </select>
 #end## A-1
 

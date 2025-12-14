@@ -38,8 +38,8 @@ public class $mainModelClass.simpleName Controller {
 | `updateDefinition` | [`UpdateDefinition`](#343-updatedefinition-update-function) | Yes | **【Update】** function definition. |
 | `deleteDefinition` | [`DeleteDefinition`](#344-deletedefinition-delete-function) | Yes | **【Delete】** function definition. |
 | `currentClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **Yes** | Java class information for the **current template** (**Non-null only in backend Java class templates**). |
-| `currentModel` | [`ModelDefinition`](#31-core-model-object-modeldefinition) | **No** | Model information for the **current template** (Available in Model/Entity templates). |
-| `currentModelClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | Model Java class information for the **current template** (Available in Model/Entity templates). |
+| `currentModel` | [`ModelDefinition`](#31-core-model-object-modeldefinition) | **No** | Model information for the **current template** (Only used in the Model/Entity templates, due to the multi-model design). |
+| `currentModelClass` | [`JavaClass`](#33-java-class-information-object-javaclass) | **No** | Model Java class information for the **current template** (Only available in Entity template in designs where Model and Entity coexist). |
 | `author` | `String` | No | Current OS username, used for code comment attribution. |
 | `module` | `String` | No | Module name to which the current function belongs. |
 | `groupId` | `String` | No | Maven/Gradle GroupId. |

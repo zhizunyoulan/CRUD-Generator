@@ -90,5 +90,5 @@
 
 ## 内置模板配置文件
 
-- [Mybatis](./built-in-templates/mybatis/config.xml)
-- [JPA](./built-in-templates/jpa/config.xml)
+- [Mybatis](../built-in-templates/mybatis/config.xml)
+- [JPA](../built-in-templates/jpa/config.xml)

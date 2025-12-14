@@ -21,23 +21,21 @@ import lombok.Data;
 public class ${resultModelClass.simpleName} #if($resultModelClass.superClass != $null)extends ${resultModelClass.superClass.simpleName} #end{
 
 #foreach ($field in $resultModelClass.fields)## A
-#if($resultModelClass.superClass == $null || !${resultModelClass.superClass.containsProperty($field.property)})## A-1
     @ApiModelProperty(value = "$field.label")
-#if($field.javaType == 'long' || $field.javaType == 'java.lang.Long')## A-1-1
+#if($field.javaType == 'long' || $field.javaType == 'java.lang.Long')## A-1
     @JsonSerialize(using = ToStringSerializer.class)
-#end## A-1-1
-#if(${field.jdbcType} == 'DATE' || ${field.jdbcType} == 'TIMESTAMP' || ${field.jdbcType} == 'TIME')## A-1-2
-#if($field.format == "DATE")## A-1-2-1
+#end## A-1
+#if(${field.jdbcType} == 'DATE' || ${field.jdbcType} == 'TIMESTAMP' || ${field.jdbcType} == 'TIME')## A-2
+#if($field.format == "DATE")## A-2-1
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-#elseif($field.format == "TIME")## A-1-2-1
+#elseif($field.format == "TIME")## A-2-1
     @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
-#else## A-1-2-1
+#else## A-2-1
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-#end## A-1-2-1
-#end## A-1-2
+#end## A-2-1
+#end## A-2
     private #getJavaTypeSimpleName($field.javaType) $field.property;
 
-#end## A-1
 #end## A
 
 }

@@ -10,17 +10,17 @@ import ${importType};
 
 public class ${currentClass.simpleName} implements Serializable {
 
-#foreach($primaryKeyField in $currentModel.primaryKeyFields)
+#foreach($primaryKeyField in $currentModel.primaryKeyFields)## A
     private #getJavaTypeSimpleName(${primaryKeyField.javaType}) ${primaryKeyField.property};
 
-#end
+#end## A
 
     public ${currentClass.simpleName}() {}
 
     public UserId(#foreach($primaryKeyField in $currentModel.primaryKeyFields)#getJavaTypeSimpleName(${primaryKeyField.javaType}) ${primaryKeyField.property}#if( !$foreach.last ), #end#end) {
-#foreach($primaryKeyField in $currentModel.primaryKeyFields)
+#foreach($primaryKeyField in $currentModel.primaryKeyFields)## A
         this.${primaryKeyField.property} = ${primaryKeyField.property};
-#end
+#end## A
     }
 
     @Override
@@ -28,13 +28,13 @@ public class ${currentClass.simpleName} implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ${currentClass.simpleName} #toLowerCamelCase(${currentClass.simpleName}) = (${currentClass.simpleName}) o;
-#foreach($primaryKeyField in $currentModel.primaryKeyFields)
-#if( $foreach.first )
+#foreach($primaryKeyField in $currentModel.primaryKeyFields)## A
+#if( $foreach.first )## A-1
         return Objects.equals(${primaryKeyField.property}, #toLowerCamelCase(${currentClass.simpleName}).${primaryKeyField.property}) &&
-#else
+#else## A-1
                Objects.equals(${primaryKeyField.property}, #toLowerCamelCase(${currentClass.simpleName}).${primaryKeyField.property});
-#end
-#end
+#end## A-1
+#end## A
 
     }
 

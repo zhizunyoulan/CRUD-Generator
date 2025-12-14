@@ -38,8 +38,8 @@ public class $mainModelClass.simpleNameController {
 | `updateDefinition` | [`UpdateDefinition`](#343-updatedefinition-修改功能) | Yes | 【修改】功能定义 |
 | `deleteDefinition` | [`DeleteDefinition`](#344-deletedefinition-删除功能) | Yes | 【删除】功能定义 |
 | `currentClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **Yes** | **当前模板**对应的 Java 类信息 (**仅后端 Java 类模板中不为空**) |
-| `currentModel` | [`ModelDefinition`](#31-核心模型对象-modeldefinition) | **No** | **当前模板**对应的模型信息 (Model/Entity 模板可用) |
-| `currentModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | **当前模板**对应的模型 Java 类信息 (Model/Entity 模板可用) |
+| `currentModel` | [`ModelDefinition`](#31-核心模型对象-modeldefinition) | **No** | **当前模板**对应的模型信息 (因为有多模型的设计，仅在Model/Entity模板使用) |
+| `currentModelClass` | [`JavaClass`](#33-java类信息对象-javaclass) | **No** | **当前模板**对应的模型 Java 类信息 (仅在Model和Entity共存的设计中在Entity模板可用) |
 | `author` | `String` | No | 当前操作系统用户名，用于代码注释署名 |
 | `module` | `String` | No | 当前功能所属模块名 |
 | `groupId` | `String` | No | Maven/Gradle 的 GroupId |
@@ -95,7 +95,8 @@ public class $mainModelClass.simpleNameController {
 *   `packageName` (String): 类所在的包名 (e.g., `com.example.model`).
 *   `qualifiedName` (String): 类的全限定名 (e.g., `com.example.model.User`).
 *   `simpleName` (String): 类的简单名称 (e.g., `User`).
-*   `fields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该类中定义的所有字段的列表.
+*   `fields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该类的字段（不包含父类）的列表.
+*   `allFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该类的所有字段（包含父类）的列表.
 *   `dynamicImports` (List<String>): 需要导入的其他类的全限定名列表.
 *   `superClass` ([`JavaClass`](#33-java类信息对象-javaclass)): 该类的父类信息.
 

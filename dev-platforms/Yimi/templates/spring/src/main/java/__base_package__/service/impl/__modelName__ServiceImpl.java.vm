@@ -38,7 +38,7 @@ public class ${currentClass.simpleName} extends ServiceImpl<${mapperClass.simple
 #end## A-1-1
 #if($readDefinition.recursiveNestedField != $null && !$readDefinition.recursiveNestedField.lazy)## A-1-2
 #set($primaryKeyField = $mainModel.getPrimaryKeyField())
-#set($parentIdGetterName = "get#toUpperCamelCase($readDefinition.recursiveNestedField.foreignProperty)")
+#set($parentIdGetterName = "get#toUpperCamelCase($readDefinition.recursiveNestedField.joinProperty)")
         Map<#getJavaTypeSimpleName( $primaryKeyField.javaType ),${mainModelClass.simpleName}> ${mainModel.camelCaseModelName}Map = new HashMap<>();
         List<${mainModelClass.simpleName}> ${mainModel.camelCaseModelName}Tree = new ArrayList<>();
         for (${mainModelClass.simpleName} ${mainModel.camelCaseModelName}Item : ${mainModel.camelCaseModelName}s) {

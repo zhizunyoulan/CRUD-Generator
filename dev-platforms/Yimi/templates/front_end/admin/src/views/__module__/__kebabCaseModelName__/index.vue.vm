@@ -95,7 +95,7 @@ export default {
         hasChildren: '${readDefinition.recursiveNestedField.property}'
 #end## A-2
       }"
-      parent-key="${readDefinition.recursiveNestedField.foreignProperty}"
+      parent-key="${readDefinition.recursiveNestedField.joinProperty}"
 #end## A
       :columns="[
 #foreach ($field in $readDefinition.resultFields)## A
@@ -270,7 +270,7 @@ export default {
             size="default"
             :plain="true"
             icon="el-icon-plus"
-            :model="{ ${readDefinition.recursiveNestedField.foreignProperty}: row.${mainModel.primaryKeyField.property} }"
+            :model="{ ${readDefinition.recursiveNestedField.joinProperty}: row.${mainModel.primaryKeyField.property} }"
             modal-title="添加${mainModel.description}"
             dialog-width="500px"
             style="margin-right: 2px"

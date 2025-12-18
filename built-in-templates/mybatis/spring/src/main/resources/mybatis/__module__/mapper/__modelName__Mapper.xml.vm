@@ -44,55 +44,7 @@
 #if( !$readDefinition.select.conditionFields.isEmpty() )## A-1-3
         <where>
 #foreach ($field in $readDefinition.select.conditionFields)## A-1-3-1
-#if( $foreach.first )## A-1-3-1-1
-#set( $andPart = "" )
-#else## A-1-3-1-1
-#set( $andPart = "AND " )
-#end## A-1-3-1-1
-#set( $tableName = ${field.tableName} )
-#if($field.tableAlias != $null)## A-1-3-1-2
-#set( $tableName = ${field.tableAlias} )
-#end## A-1-3-1-2
-#if ( ${field.conditionProperties.compareType} == "between" )## A-1-3-1-3
-#set( $nestedProps = ${field.conditionProperties.betweenLeftProp.split("\.")} )
-             <if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$field.conditionProperties.betweenLeftProp != null and $field.conditionProperties.betweenRightProp != null">
-                ${andPart}${tableName}.$field.columnName between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
-             </if>
-#else## A-1-3-1-3
-#if($field.conditionProperties.propAlias != $null)## A-1-3-1-3-1
-#set( $propAlias = ${field.conditionProperties.propAlias} )
-#else## A-1-3-1-3-1
-#set( $propAlias = ${field.property} )
-#end## A-1-3-1-3-1
-#if(!$field.conditionProperties.required)## A-1-3-1-3-2
-#set( $nestedProps = ${propAlias.split("\.")} )
-             <if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$propAlias != null">
-#end## A-1-3-1-3-2
-#if( ${field.conditionProperties.compareType} == "gt" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName <![CDATA[>]]> #{$propAlias}
-#elseif ( ${field.conditionProperties.compareType} == "ge" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName <![CDATA[>=]]> #{$propAlias}
-#elseif ( ${field.conditionProperties.compareType} == "lt" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName <![CDATA[<]]> #{$propAlias}
-#elseif ( ${field.conditionProperties.compareType} == "le" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName <![CDATA[<=]]> #{$propAlias}
-#elseif ( ${field.conditionProperties.compareType} == "like" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName like concat('%', #{$propAlias}, '%')
-#elseif ( ${field.conditionProperties.compareType} == "likeLeft" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName like concat('%', #{$propAlias})
-#elseif ( ${field.conditionProperties.compareType} == "likeRight" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName like concat(#{$propAlias}, '%')
-#elseif ( ${field.conditionProperties.compareType} == "isNull" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName IS NULL
-#elseif ( ${field.conditionProperties.compareType} == "isNotNull" )## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName IS NOT NULL
-#else## A-1-3-1-3-3
-                ${andPart}${tableName}.$field.columnName = #{$propAlias}
-#end## A-1-3-1-3-3
-#if(!$field.conditionProperties.required)## A-1-3-1-3-4
-             </if>
-#end## A-1-3-1-3-4
-#end## A-1-3-1-3
+            #conditionPart( $field true $foreach.first 2 )
 #end## A-1-3-1
         </where>
 #end## A-1-3
@@ -118,56 +70,7 @@
 #if( !$readDefinition.select.conditionFields.isEmpty() )## A-1-2
         <where>
 #foreach ($field in $readDefinition.select.conditionFields)## A-1-2-1
-#if( $foreach.first )## A-1-2-1-1
-#set( $andPart = "" )
-#else## A-1-2-1-1
-#set( $andPart = "AND " )
-#end## A-1-2-1-1
-#if ( ${field.conditionProperties.compareType} == "between" )## A-1-2-1-2
-#if($field.conditionProperties.betweenLeftProp != $null)## A-1-2-1-2-1
-#set( $betweenLeftProp = ${field.conditionProperties.betweenLeftProp} )
-#else## A-1-2-1-2-1
-#set( $betweenLeftProp = "${field.property}Start" )
-#end## A-1-2-1-2-1
-#set( $nestedProps = ${field.conditionProperties.betweenLeftProp.split("\.")} )
-             <if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$field.conditionProperties.betweenLeftProp != null and $field.conditionProperties.betweenRightProp != null">
-                ${andPart}$field.columnName between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
-             </if>
-#else## A-1-2-1-2
-#if($field.conditionProperties.propAlias != $null)## A-1-2-1-2-1
-#set( $propAlias = ${field.conditionProperties.propAlias} )
-#else## A-1-2-1-2-1
-#set( $propAlias = ${field.property} )
-#end## A-1-2-1-2-1
-#if(!$field.conditionProperties.required)## A-1-2-1-2-2
-#set( $nestedProps = ${propAlias.split("\.")} )
-             <if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$propAlias != null">
-#end## A-1-2-1-2-2
-#if( ${field.conditionProperties.compareType} == "gt" )## A-1-2-1-2-3
-                ${andPart}$field.columnName <![CDATA[>]]> #{$propAlias}
-#elseif ( ${field.conditionProperties.compareType} == "ge" )## A-1-2-1-2-3
-                ${andPart}$field.columnName <![CDATA[>=]]> #{$propAlias}
-#elseif ( ${field.conditionProperties.compareType} == "lt" )## A-1-2-1-2-3
-                ${andPart}$field.columnName <![CDATA[<]]> #{$propAlias}
-#elseif ( ${field.conditionProperties.compareType} == "le" )## A-1-2-1-2-3
-                ${andPart}$field.columnName <![CDATA[<=]]> #{$propAlias}
-#elseif ( ${field.conditionProperties.compareType} == "like" )## A-1-2-1-2-3
-                ${andPart}$field.columnName like concat('%', #{$propAlias}, '%')
-#elseif ( ${field.conditionProperties.compareType} == "likeLeft" )## A-1-2-1-2-3
-                ${andPart}$field.columnName like concat('%', #{$propAlias})
-#elseif ( ${field.conditionProperties.compareType} == "likeRight" )## A-1-2-1-2-3
-                ${andPart}$field.columnName like concat(#{$propAlias}, '%')
-#elseif ( ${field.conditionProperties.compareType} == "isNull" )## A-1-2-1-2-3
-                ${andPart}$field.columnName IS NULL
-#elseif ( ${field.conditionProperties.compareType} == "isNotNull" )## A-1-2-1-2-3
-                ${andPart}$field.columnName IS NOT NULL
-#else## A-1-2-1-2-3
-                ${andPart}$field.columnName = #{$propAlias}
-#end## A-1-2-1-2-3
-#if(!$field.conditionProperties.required)## A-1-2-1-2-4
-             </if>
-#end## A-1-2-1-2-4
-#end## A-1-2-1-2
+            #conditionPart( $field false $foreach.first 2 )
 #end## A-1-2-1
         </where>
 #end## A-1-2

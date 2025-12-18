@@ -210,7 +210,7 @@ function cancel${mainModel.modelName}Form(){
 #end## A-1-1-2-1-1
 #end## A-1-1-2-1
 #else## A-1-1-2
-#if($field.formProperties.inputType == "select")## A-1-1-2-1
+#if($field.formProperties.valueRange == "options")## A-1-1-2-1
 #if($field.formProperties.editable)## A-1-1-2-1-1
                   <el-select v-model="${mainModel.camelCaseModelName}FormModel.${field.property}" style="width: 100%" clearable placeholder="Input ${field.label}">
                     <!-- <el-option label="" value=""> </el-option> -->

@@ -1,0 +1,109 @@
+#macro( mybatisResultMapFields $nestedFields $deep = 1 )## A
+#set( $primaryKeyCount = 0 )
+#foreach ($field in $nestedFields)## A-1
+#if($field.primaryKey)## A-1-1
+#set( $primaryKeyCount = $primaryKeyCount + 1 )
+#end## A-1-1
+#end## A-1
+#foreach ($field in $nestedFields)## A-2
+    #if($field.nestInfo == $null)## A-2-2
+        #if($field.primaryKey && $primaryKeyCount == 1)## A-2-2-1
+#foreach ($i in [0..$deep])    #end<id property="${field.property}" column="${field.columnName}" jdbcType="${field.jdbcType}"/>
+        #else## A-2-2-1
+#foreach ($i in [0..$deep])    #end<result property="#getFirstNonNull( [$field.selectProperties.propAlias, $field.property])" column="#getFirstNonNull( [$field.selectProperties.columnAlias, $field.columnName])" jdbcType="${field.jdbcType}"/>
+        #end## A-2-2-1
+    #else## A-2-2
+        #set( $nextDeep = $deep + 1 )
+        #if($field.nestInfo.type == 'collection')## A-2-2-1
+#if($field.nestedFields.size() > 0)## A-2-2-1-1
+#foreach ($i in [0..$deep])    #end<collection property="${field.property}" ofType="${field.nestInfo.ofJavaType}" #if(${field.nestInfo.columnPrefix} != $null)columnPrefix="${field.nestInfo.columnPrefix}"#end>
+                #mybatisResultMapFields( $field.nestedFields $nextDeep )
+#foreach ($i in [0..$deep])    #end</collection>
+#end## A-2-2-1-1
+        #else## A-2-2-1
+#if($field.nestedFields.size() > 0)## A-2-2-1-1
+#foreach ($i in [0..$deep])    #end<association property="${field.property}" javaType="${field.nestInfo.javaType}" #if(${field.nestInfo.columnPrefix} != $null)columnPrefix="${field.nestInfo.columnPrefix}"#end>
+                #mybatisResultMapFields( $field.nestedFields $nextDeep )
+#foreach ($i in [0..$deep])    #end</association>
+#end## A-2-2-1-1
+        #end## A-2-2-1
+    #end## A-2-2
+#end## A-2
+#end## A
+
+
+#macro( sqlPlainConditionExpression $left $operator $right )## A
+#if( ${field.conditionProperties.operator} == "gt" )
+${left} <![CDATA[>]]> #{$right}#elseif ( ${field.conditionProperties.operator} == "ge" )
+${left} <![CDATA[>=]]> #{$right}#elseif ( ${field.conditionProperties.operator} == "lt" )
+${left} <![CDATA[<]]> #{$right}#elseif ( ${field.conditionProperties.operator} == "le" )
+${left} <![CDATA[<=]]> #{$right}#elseif ( ${field.conditionProperties.operator} == "like" )
+${left} like concat('%', #{$right}, '%')#elseif ( ${field.conditionProperties.operator} == "likeLeft" )
+${left} like concat('%', #{$right})#elseif ( ${field.conditionProperties.operator} == "likeRight" )
+${left} like concat(#{$right}, '%')#else
+${left} = #{$right}#end
+#end## A
+
+
+#macro( conditionPart $field $needTableName $first $indent )## A
+#if( $first )## A-1
+#set( $andPart = "" )
+#else## A-1
+#set( $andPart = "AND " )
+#end## A-1
+#set( $leftPart = "" )
+#if($needTableName)## A-2
+#if($field.tableAlias != $null)## A-2-1
+#set( $leftPart = "${field.tableAlias}." )
+#else## A-2-1
+#set( $leftPart = "${field.tableName}." )
+#end## A-2-1
+#end## A-2
+#set( $leftPart = "${leftPart}${field.columnName}" )
+#if ( ${field.conditionProperties.operator} == "isNull" )## A-3
+#foreach ($i in [0..$indent])    #end${andPart}${leftPart} IS NULL
+#elseif ( ${field.conditionProperties.operator} == "isNotNull" )## A-3
+#foreach ($i in [0..$indent])    #end${andPart}${leftPart} IS NOT NULL
+#elseif ( ${field.conditionProperties.operator} == "between" )## A-3
+#set( $nestedProps = ${field.conditionProperties.betweenLeftProp.split("\.")} )
+#if($field.conditionProperties.required)## A-3-1
+#foreach ($i in [0..$indent])    #end${andPart}${leftPart} between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
+#elseif($field.conditionProperties.nullHandle == 'isNull')## A-3-1
+#foreach ($i in [0..$indent])    #end<choose>
+#foreach ($i in [0..$indent])    #end   <when test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$field.conditionProperties.betweenLeftProp != null and $field.conditionProperties.betweenRightProp != null">
+#foreach ($i in [0..$indent])    #end       ${andPart}${leftPart} between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
+#foreach ($i in [0..$indent])    #end   </when>
+#foreach ($i in [0..$indent])    #end   <otherwise>
+#foreach ($i in [0..$indent])    #end       ${andPart}${leftPart} IS NULL
+#foreach ($i in [0..$indent])    #end   </otherwise>
+#foreach ($i in [0..$indent])    #end</choose>
+#else## A-3-1
+#foreach ($i in [0..$indent])    #end<if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$field.conditionProperties.betweenLeftProp != null and $field.conditionProperties.betweenRightProp != null">
+#foreach ($i in [0..$indent])    #end    ${andPart}${leftPart} between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
+#foreach ($i in [0..$indent])    #end</if>
+#end## A-3-1
+#else## A-3
+#if($field.conditionProperties.propAlias != $null)## A-3-1
+#set( $propAlias = ${field.conditionProperties.propAlias} )
+#else## A-3-1
+#set( $propAlias = ${field.property} )
+#end## A-3-1
+#set( $nestedProps = ${propAlias.split("\.")} )
+#if($field.conditionProperties.required)## A-3-2
+#foreach ($i in [0..$indent])    #end${andPart}#sqlPlainConditionExpression($leftPart $field.conditionProperties.operator $propAlias )
+#elseif($field.conditionProperties.nullHandle == 'isNull')## A-3-2
+#foreach ($i in [0..$indent])    #end<choose>
+#foreach ($i in [0..$indent])    #end   <when test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$propAlias != null">
+#foreach ($i in [0..$indent])    #end       ${andPart}#sqlPlainConditionExpression($leftPart $field.conditionProperties.operator $propAlias )
+#foreach ($i in [0..$indent])    #end   </when>
+#foreach ($i in [0..$indent])    #end   <otherwise>
+#foreach ($i in [0..$indent])    #end       ${andPart}${leftPart} IS NULL
+#foreach ($i in [0..$indent])    #end   </otherwise>
+#foreach ($i in [0..$indent])    #end</choose>
+#else## A-3-2
+#foreach ($i in [0..$indent])    #end<if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$propAlias != null">
+#foreach ($i in [0..$indent])    #end    ${andPart}#sqlPlainConditionExpression($leftPart $field.conditionProperties.operator $propAlias )
+#foreach ($i in [0..$indent])    #end</if>
+#end## A-3-2
+#end## A-3
+#end## A

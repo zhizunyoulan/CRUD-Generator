@@ -127,7 +127,7 @@ watch(model, (v, ov) => {
 #end## A-1-1-2-1-1
 #end## A-1-1-2-1
 #else## A-1-1-2
-#if($field.formProperties.inputType == "select")## A-1-1-2-1
+#if($field.formProperties.valueRange == "options")## A-1-1-2-1
 #if($field.formProperties.editable)## A-1-1-2-1-1
               <el-select v-model="model.${field.property}" style="width: 100%" clearable placeholder="请选择${field.label}">
                 <!-- <el-option label="" value=""> </el-option> -->

@@ -24,7 +24,7 @@ import lombok.Data;
 public class ${currentClass.simpleName} extends Model<${currentClass.simpleName}> {
 
 #foreach ($field in ${currentClass.fields})## A
-    @ApiModelProperty(value = "$field.label")
+    @ApiModelProperty("$field.label")
 #if($field.primaryKey && $currentModel.primaryKeyFields.size() == 1)## A-1
 #if($field.autoIncrement)## A-1-1
     @TableId(type = IdType.AUTO)

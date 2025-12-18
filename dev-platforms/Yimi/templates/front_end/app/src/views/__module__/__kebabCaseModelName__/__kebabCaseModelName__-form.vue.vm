@@ -154,7 +154,7 @@ export default {
             </van-popup>
 #end## A-1-1-1-3
 #else## A-1-1-1
-#if($field.formProperties.inputType == "select")## A-1-1-1-1
+#if($field.formProperties.valueRange == "options")## A-1-1-1-1
             <van-field
 #if($createDefinition.formFields.contains($field) && $updateDefinition.formFields.contains($field))## A-1-1-1-1-1
 #elseif($createDefinition.formFields.contains($field))## A-1-1-1-1-1

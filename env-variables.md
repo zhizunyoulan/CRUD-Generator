@@ -82,6 +82,8 @@ public class $mainModelClass.simpleName Controller {
 *   `primaryKey` (Boolean): Indicates if the field is part of the primary key.
 *   `format` (String): Data format (often used for datetime fields, e.g., `yyyy-MM-dd HH:mm:ss`).
 *   `exist` (Boolean): Indicates if this property actually maps to a database table column.
+*   `tableName` (String): The name of the database table to which the model belongs.
+*   `tableAlias` (String): The alias of the database table for the model (used in SQL queries).
 *   `selectProperties` ([`SelectProperties`](#355-selectproperties-retrieval-properties)): Configures the field's behavior during **data retrieval**.
 *   `conditionProperties` ([`ConditionProperties`](#356-conditionproperties-condition-properties)): Configures the field's behavior when used as a **query condition**.
 *   `formProperties` ([`FormProperties`](#357-formproperties-form-properties)): Configures the field's behavior in the **frontend form**.
@@ -96,6 +98,7 @@ public class $mainModelClass.simpleName Controller {
 *   `qualifiedName` (String): The fully qualified name of the class (e.g., `com.example.model.User`).
 *   `simpleName` (String): The simple name of the class (e.g., `User`).
 *   `fields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): List of all fields defined in this class.
+*   `allFields` (List<[`FieldDefinition`](#32-field-definition-object-fielddefinition)>): A list of all fields of this class, including those from its parent class.
 *   `dynamicImports` (List<String>): List of fully qualified names of other classes that need to be imported.
 *   `superClass` ([`JavaClass`](#33-java-class-information-object-javaclass)): The parent class information of this class.
 
@@ -147,7 +150,7 @@ public class $mainModelClass.simpleName Controller {
 **Available Location:** `$readDefinition.recursiveNestedField`
 **Fields:**
 *   `property` (String): The collection property name that holds the recursive subset (e.g., `children`).
-*   `foreignProperty` (String): The foreign key property name pointing to the parent node ID (e.g., `parentId`).
+*   `joinProperty` (String): The foreign key property name pointing to the parent node ID (e.g., `parentId`).
 *   `lazy` (Boolean): Whether to use lazy loading for the recursive subset.
 
 #### 3.5.2 `SelectDefinition` (Query Definition)
@@ -185,9 +188,21 @@ public class $mainModelClass.simpleName Controller {
 **Fields:**
 *   `propAlias` (String): The property alias of the condition field.
 *   `labelAlias` (String): The display name alias of the condition field.
-*   `inputType` (String): Frontend input component type (e.g., `'input'`, `'select'`).
-*   `compareType` (String): SQL comparison operator (e.g., `'='`, `'LIKE'`, `'>'`).
+
+*   `operator` (String): SQL comparison operator (e.g., `'='`, `'LIKE'`, `'>'`).
+*   `valueType` (String): Operand Type. Specifies the source of a field's operand value. Possible values are "variable" or "constant".
+*   `valueRange` (String): The range of variable values. Can be "any" (for any value) or "options" (for selecting from a defined set of options).
+
+*   `value`: The concrete value of the constant. This field is valid only when valueType is "constant". Its data type is determined by the type of the field it corresponds to. If the field is of time type, this value can be a predefined constant for generating specific time points, for example: currentDateTime (current date and time), currentDate (current date), currentTime (current time), currentMonthStart (first day of the current month), currentYearStart (first day of the current year).
+*   `betweenLeftValue`: The left interval fixed value for the BETWEEN operator. Its definition, conditions for taking effect, value type, and optional values for time-type fields are exactly the same as the `value` property.
+*   `betweenRightValue`: The right interval fixed value for the BETWEEN operator. Its definition, conditions for taking effect, value type, and optional values for time-type fields are exactly the same as the `value` property.
+*   `betweenLeftProp` (String): **Property name for the left-interval variable**. When the operand type (`valueType`) for the left interval of the `BETWEEN` operator is a variable (`"variable"`), this field specifies the **request parameter property name** used to receive that variable‘s value.
+*   `betweenRightProp` (String): **Property name for the right-interval variable**. When the operand type (`valueType`) for the right interval of the `BETWEEN` operator is a variable (`"variable"`), this field specifies the **request parameter property name** used to receive that variable‘s value.
+*   `betweenLeftLabel` (String): **Display label for the left-interval condition**. Used on query forms or interfaces to clearly show the user a **Chinese or friendly name** for the left-interval condition.
+*   `betweenRightLabel` (String): **Display label for the right-interval condition**. Used on query forms or interfaces to clearly show the user a **Chinese or friendly name** for the right-interval condition.
 *   `required` (Boolean): Whether the value of the condition field must be non-empty.
+*   `nullHandle` (String): Null-value handling strategy. Determines the backend logic when a query condition field is marked as non-required and no value is passed from the frontend. Possible values are "skip" (skip the condition) or "isNull" (query with IS NULL).
+
 
 #### 3.5.6 `FormProperties` (Form Properties)
 **Description**: Configures the field's behavior in the frontend form.
@@ -221,7 +236,11 @@ public class $mainModelClass.simpleName Controller {
 *   `#getAliasOrProperty($field)`
 *   `#getJavaTypeSimpleName($javaType)`
 *   `#getJavaTypeSimpleName($javaType, $withGenerics)`
+
+
+**Overridable Velocity Macros(velocimacros.vtl):**
 *   `#mybatisResultMapFields($resultFieldsTree)`: Automatically generates the field mapping part of the MyBatis ResultMap.
+*   `sqlPlainConditionExpression`, `betweenConditionExpression`, and `conditionPart`: These three macros are used together to dynamically construct the WHERE clause conditions for SQL queries within code templates. Their current implementation is based on MySQL syntax.
 
 ## 4. Comprehensive Examples
 

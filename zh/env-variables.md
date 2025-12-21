@@ -82,6 +82,8 @@ public class $mainModelClass.simpleNameController {
 *   `primaryKey` (Boolean): 指示该字段是否为主键的一部分.
 *   `format` (String): 数据格式（常用于日期时间字段，如 `yyyy-MM-dd HH:mm:ss`）.
 *   `exist` (Boolean): 指示该属性是否真正映射到数据库表字段.
+*   `tableName` (String): 所属模型的数据库表名.
+*   `tableAlias` (String): 所属模型的数据库表的别名 (用于 SQL 查询).
 *   `selectProperties` ([`SelectProperties`](#356-selectproperties-检索属性)): 配置该字段在**数据检索**时的行为.
 *   `conditionProperties` ([`ConditionProperties`](#357-conditionproperties-条件属性)): 配置该字段作为**查询条件**时的行为.
 *   `formProperties` ([`FormProperties`](#358-formproperties-表单属性)): 配置该字段在**前端表单**中的行为.
@@ -149,12 +151,12 @@ public class $mainModelClass.simpleNameController {
 **可用位置:** `$readDefinition.recursiveNestedField`
 **字段:**
 *   `property` (String): 承载递归子集的集合属性名 (e.g., `children`).
-*   `foreignProperty` (String): 指向父节点ID的外键属性名 (e.g., `parentId`).
+*   `joinProperty` (String): 指向父节点ID的外键属性名 (e.g., `parentId`).
 *   `lazy` (Boolean): 是否对递归子集采用懒加载.
 
 #### 3.5.2 `SelectDefinition` (查询定义)
 **描述**: 定义了一个SQL查询片段的核心要素。
-**可用位置:** `$readDefinition.allSelects`
+**可用位置:** `$readDefinition.select`
 **字段:**
 *   `functionName` (String): 查询片段对应的方法名/SQL ID.
 *   `selectFields` (List<[`FieldDefinition`](#32-字段定义对象-fielddefinition)>): 该查询片段需要检出的字段列表.
@@ -188,9 +190,18 @@ public class $mainModelClass.simpleNameController {
 **字段:**
 *   `propAlias` (String): 条件字段的属性别名.
 *   `labelAlias` (String): 条件字段的显示名称别名.
-*   `inputType` (String): 前端输入组件类型 (e.g., `'input'`, `'select'`).
-*   `compareType` (String): SQL 比较操作符 (e.g., `'='`, `'LIKE'`, `'>'`).
+*   `operator` (String): SQL 条件字段的操作符 (e.g., `'='`, `'LIKE'`, `'>'`).
+*   `valueType` (String): 操作数类型。用于指定某字段操作数的取值来源，可选值为 "variable" (变量) 或 "constant" (固定值)。
+*   `valueRange` (String): 变量值的范围 (e.g., `'any'`, `'options'`).
+*   `value`: 固定值的具体取值。当 valueType 为 "constant" 时，此字段有效。其值类型由对应字段类型决定。若字段为时间类型，此值可以是用于生成特定时间点的预定义常量，例如：currentDateTime (当前日期时间)、currentDate (当前日期)、currentTime (当前时间)、currentMonthStart (本月第一天)、currentYearStart (本年第一天).
+*   `betweenLeftValue`: BETWEEN 操作符的左区间固定值。其定义、生效条件、值类型及时间类型可选值均与 `value` 属性完全相同.
+*   `betweenRightValue`: BETWEEN 操作符的右区间固定值。其定义、生效条件、值类型及时间类型可选值均与 `value` 属性完全相同.
+*   `betweenLeftProp` (String): 左区间变量属性名。当 BETWEEN 操作符的左区间操作数类型 (valueType) 为变量 ("variable") 时，此字段指定用于接收该变量值的请求参数属性名.
+*   `betweenRightProp` (String): 右区间变量属性名。当 BETWEEN 操作符的右区间操作数类型 (valueType) 为变量 ("variable") 时，此字段指定用于接收该变量值的请求参数属性名.
+*   `betweenLeftLabel` (String): 左区间条件显示名。用于在查询表单或界面上，向用户清晰展示左区间条件的中文或友好名称.
+*   `betweenRightLabel` (String): 右区间条件显示名。用于在查询表单或界面上，向用户清晰展示右区间条件的中文或友好名称.
 *   `required` (Boolean): 条件字段的值是否必须非空.
+*   `nullHandle` (String): 空值处理策略。当查询条件的字段被标记为非必传，且前端未传入该参数值时，用于决定后端的处理逻辑。可选值为 “skip” (跳过判断) 或 “isNull” (查询 IS NULL).
 
 #### 3.5.6 `FormProperties` (表单属性)
 **描述**: 配置字段在前端表单中的行为。
@@ -224,7 +235,11 @@ public class $mainModelClass.simpleNameController {
 *   `#getAliasOrProperty($field)`
 *   `#getJavaTypeSimpleName($javaType)`
 *   `#getJavaTypeSimpleName($javaType, $withGenerics)`
+
+
+**可重写的Velocity宏（velocimacros.vtl）:**
 *   `#mybatisResultMapFields($resultFieldsTree)`: 自动生成 MyBatis ResultMap 字段映射部分.
+*   `sqlPlainConditionExpression`、`betweenConditionExpression`、`conditionPart`：这三个宏共同用于在代码模板中动态构造 SQL 查询的 WHERE 条件部分。它们的当前实现基于 MySQL 语法.
 
 ## 四、综合示例
 

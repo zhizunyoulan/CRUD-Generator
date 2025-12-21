@@ -6,10 +6,9 @@
 ## 🚀 Quick Start
 
 1.  **Install Plugin**: Install the `Yimi CRUD Generator` plugin from the JetBrains Marketplace.
-2.  **Create Configuration**: Create a `config.xml` file in your project root directory.
-3.  **Select Model**: Right-click a Model/Entity class in the IDE and select "Generate Code / CRUD".
-4.  **Orchestrate Functions**: Configure fields, query conditions, and sorting rules in the visual interface.
-5.  **Generate Code**: Generate frontend and backend code files, save or merge files.
+2.  **Select Model**: Right-click a Model/Entity class in the IDE and select "Generate Code / CRUD".
+3.  **Orchestrate Functions**: Configure fields, query conditions, and sorting rules in the visual interface.
+4.  **Generate Code**: Generate frontend and backend code files, save or merge files.
 
 ## 💡 Core Features
 

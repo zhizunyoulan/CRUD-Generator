@@ -33,10 +33,14 @@ export default {
   },
 }
 </script>
-
-#set( $conditionFields = $readDefinition.conditionFields )
+#set( $variableConditionFields = [] )
+#foreach ($field in $readDefinition.conditionFields)## A
+#if($field.conditionProperties.valueType == 'variable')## A-1
+#if($variableConditionFields.add($field))#end
+#end## A-1
+#end## A
 #set( $nestedConditionFields = [] )
-#foreach ($field in $conditionFields)## A
+#foreach ($field in $variableConditionFields)## A
 #if($field.conditionProperties.propAlias != $null)## A-1
 #set( $nestedProps = ${field.conditionProperties.propAlias.split("\.")} )
 #else## A-1
@@ -63,21 +67,19 @@ export default {
 #foreach ($nestedConditionProp in $nestedConditionFields)## A
         params.$nestedConditionProp = {...params.$nestedConditionProp}
 #end## A
-#foreach ($field in $conditionFields)## A
-#if($field.primaryKey == false)## A-1
+#foreach ($field in $variableConditionFields)## A
 #set($fieldValueType=$myTool.getTsTypeForJavaType($field.javaType))
-#if($field.conditionProperties.operator == 'between' && $fieldValueType == "Date")## A-1-1
-#if($field.conditionProperties.propAlias != $null)## A-1-1-1
+#if($field.conditionProperties.operator == 'between' && $fieldValueType == "Date")## A-1
+#if($field.conditionProperties.propAlias != $null)## A-1-1
 #set( $propAlias = ${field.conditionProperties.propAlias} )
-#else## A-1-1-1
+#else## A-1-1
 #set( $propAlias = ${field.property} )
-#end## A-1-1-1
+#end## A-1-1
         if (Array.isArray(params.$propAlias)) {
           params.${field.conditionProperties.betweenLeftProp} = params.${propAlias}[0]
           params.${field.conditionProperties.betweenRightProp} = params.${propAlias}[1]
           delete params.$propAlias
         }
-#end## A-1-1
 #end## A-1
 #end## A
 
@@ -126,8 +128,8 @@ export default {
     >
       <template #conditions="{ model, refresh }">
         <el-form inline :model="model" size="small">
-#foreach ($field in $conditionFields)## A
-#if($field.primaryKey == false && $field.conditionProperties.operator != 'isNull' && $field.conditionProperties.operator != 'isNotNull')## A-1
+#foreach ($field in $variableConditionFields)## A
+#if( $field.conditionProperties.operator != 'isNull' && $field.conditionProperties.operator != 'isNotNull' )## A-1
 #if($field.conditionProperties.propAlias != $null)## A-1-1
 #set( $propAlias = ${field.conditionProperties.propAlias} )
 #else## A-1-1

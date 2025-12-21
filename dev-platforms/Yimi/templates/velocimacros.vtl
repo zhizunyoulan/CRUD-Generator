@@ -32,17 +32,84 @@
 #end## A
 
 
-#macro( sqlPlainConditionExpression $left $operator $right )## A
-#if( ${field.conditionProperties.operator} == "gt" )
-${left} <![CDATA[>]]> #{$right}#elseif ( ${field.conditionProperties.operator} == "ge" )
-${left} <![CDATA[>=]]> #{$right}#elseif ( ${field.conditionProperties.operator} == "lt" )
-${left} <![CDATA[<]]> #{$right}#elseif ( ${field.conditionProperties.operator} == "le" )
-${left} <![CDATA[<=]]> #{$right}#elseif ( ${field.conditionProperties.operator} == "like" )
-${left} like concat('%', #{$right}, '%')#elseif ( ${field.conditionProperties.operator} == "likeLeft" )
-${left} like concat('%', #{$right})#elseif ( ${field.conditionProperties.operator} == "likeRight" )
-${left} like concat(#{$right}, '%')#else
-${left} = #{$right}#end
+#macro( sqlPlainConditionExpression $field $left $param $value )## A
+#set( $operator = $field.conditionProperties.operator )
+#set( $right = $null )
+#if( $field.conditionProperties.valueType == 'constant')## A-1
+#if( $field.jdbcType == 'TIMESTAMP' || $field.jdbcType == 'DATE' || $field.jdbcType == 'TIME' )## A-1-1
+#if( $value == "currentDateTime" )## A-1-1-1
+#set( $right = "NOW()" )
+#elseif( $value == "currentDate" )## A-1-1-1
+#set( $right = "CURDATE()" )
+#elseif( $value == "currentTime" )## A-1-1-1
+#set( $right = "CURTIME()" )
+#elseif( $value == "currentMonthStart" )## A-1-1-1
+#set( $right = "DATE_FORMAT(CURDATE(), '%Y-%m-01')" )
+#elseif( $value == "currentYearStart" )## A-1-1-1
+#set( $right = "DATE_FORMAT(CURDATE(), '%Y-01-01')" )
+#end## A-1-1-1
+#else## A-1-1
+#if( $field.javaType == 'java.lang.String' || $field.javaType == 'java.lang.Character' )## A-1-1-1
+#set( $right = "'$value'" )
+#else## A-1-1-1
+#set( $right = $value )
+#end## A-1-1-1
+#end## A-1-1
+#else## A-1
+#set( $right = "#{$param}" )
+#end## A-1
+#if( ${operator} == "gt" )
+${left} <![CDATA[>]]> ${right}#elseif ( ${operator} == "ge" )
+${left} <![CDATA[>=]]> ${right}#elseif ( ${operator} == "lt" )
+${left} <![CDATA[<]]> ${right}#elseif ( ${operator} == "le" )
+${left} <![CDATA[<=]]> ${right}#elseif ( ${operator} == "like" )
+${left} like concat('%', ${right}, '%')#elseif ( ${operator} == "likeLeft" )
+${left} like concat('%', ${right})#elseif ( ${operator} == "likeRight" )
+${left} like concat(${right}, '%')#else
+${left} = ${right}#end
 #end## A
+
+#macro( betweenConditionExpression $field $left $startParam $endParam $startValue $endValue )## A
+#set( $startValPart = $null )
+#set( $endValPart = $null )
+#if( $field.conditionProperties.valueType == 'constant' )## A-1
+#if( $field.jdbcType == 'TIMESTAMP' || $field.jdbcType == 'DATE' || $field.jdbcType == 'TIME' )## A-1-1
+#if( $startValue == "currentDateTime" )## A-1-1-1
+#set( $startValPart = "NOW()" )
+#elseif( $startValue == "currentDate" )## A-1-1-1
+#set( $startValPart = "CURDATE()" )
+#elseif( $startValue == "currentTime" )## A-1-1-1
+#set( $startValPart = "CURTIME()" )
+#elseif( $startValue == "currentMonthStart" )## A-1-1-1
+#set( $startValPart = "DATE_FORMAT(CURDATE(), '%Y-%m-01')" )
+#elseif( $startValue == "currentYearStart" )## A-1-1-1
+#set( $startValPart = "DATE_FORMAT(CURDATE(), '%Y-01-01')" )
+#end## A-1-1-1
+#if( $endValue == "currentDateTime" )## A-1-1-2
+#set( $endValPart = "NOW()" )
+#elseif( $endValue == "currentDate" )## A-1-1-2
+#set( $endValPart = "CURDATE()" )
+#elseif( $endValue == "currentTime" )## A-1-1-2
+#set( $endValPart = "CURTIME()" )
+#elseif( $endValue == "currentMonthStart" )## A-1-1-2
+#set( $endValPart = "DATE_FORMAT(CURDATE(), '%Y-%m-01')" )
+#elseif( $endValue == "currentYearStart" )## A-1-1-2
+#set( $endValPart = "DATE_FORMAT(CURDATE(), '%Y-01-01')" )
+#end## A-1-1-2
+#else## A-1-1
+#if( $field.javaType == 'java.lang.String' || $field.javaType == 'java.lang.Character' )## A-1-1-1
+#set( $startValPart = "'$startValue'" )
+#set( $endValPart = "'$endValue'" )
+#else## A-1-1-1
+#set( $startValPart = $startValue )
+#set( $endValPart = $endValue )
+#end## A-1-1-1
+#end## A-1-1
+#else## A-1
+#set( $startValPart = "#{$startParam}" )
+#set( $endValPart = "#{$endParam}" )
+#end## A-1
+${leftPart} between $startValPart and $endValPart#end## A
 
 
 #macro( conditionPart $field $needTableName $first $indent )## A
@@ -66,12 +133,12 @@ ${left} = #{$right}#end
 #foreach ($i in [0..$indent])    #end${andPart}${leftPart} IS NOT NULL
 #elseif ( ${field.conditionProperties.operator} == "between" )## A-3
 #set( $nestedProps = ${field.conditionProperties.betweenLeftProp.split("\.")} )
-#if($field.conditionProperties.required)## A-3-1
-#foreach ($i in [0..$indent])    #end${andPart}${leftPart} between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
+#if( $field.conditionProperties.required || $field.conditionProperties.valueType == 'constant' )## A-3-1
+#foreach ($i in [0..$indent])    #end${andPart}#betweenConditionExpression( $field $leftPart $field.conditionProperties.betweenLeftProp $field.conditionProperties.betweenRightProp $field.conditionProperties.betweenLeftValue $field.conditionProperties.betweenRightValue )
 #elseif($field.conditionProperties.nullHandle == 'isNull')## A-3-1
 #foreach ($i in [0..$indent])    #end<choose>
 #foreach ($i in [0..$indent])    #end   <when test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$field.conditionProperties.betweenLeftProp != null and $field.conditionProperties.betweenRightProp != null">
-#foreach ($i in [0..$indent])    #end       ${andPart}${leftPart} between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
+#foreach ($i in [0..$indent])    #end       ${andPart}#betweenConditionExpression( $field $leftPart $field.conditionProperties.betweenLeftProp $field.conditionProperties.betweenRightProp $field.conditionProperties.betweenLeftValue $field.conditionProperties.betweenRightValue )
 #foreach ($i in [0..$indent])    #end   </when>
 #foreach ($i in [0..$indent])    #end   <otherwise>
 #foreach ($i in [0..$indent])    #end       ${andPart}${leftPart} IS NULL
@@ -79,7 +146,7 @@ ${left} = #{$right}#end
 #foreach ($i in [0..$indent])    #end</choose>
 #else## A-3-1
 #foreach ($i in [0..$indent])    #end<if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$field.conditionProperties.betweenLeftProp != null and $field.conditionProperties.betweenRightProp != null">
-#foreach ($i in [0..$indent])    #end    ${andPart}${leftPart} between #{$field.conditionProperties.betweenLeftProp} and #{$field.conditionProperties.betweenRightProp}
+#foreach ($i in [0..$indent])    #end    ${andPart}#betweenConditionExpression( $field $leftPart $field.conditionProperties.betweenLeftProp $field.conditionProperties.betweenRightProp $field.conditionProperties.betweenLeftValue $field.conditionProperties.betweenRightValue )
 #foreach ($i in [0..$indent])    #end</if>
 #end## A-3-1
 #else## A-3
@@ -89,12 +156,12 @@ ${left} = #{$right}#end
 #set( $propAlias = ${field.property} )
 #end## A-3-1
 #set( $nestedProps = ${propAlias.split("\.")} )
-#if($field.conditionProperties.required)## A-3-2
-#foreach ($i in [0..$indent])    #end${andPart}#sqlPlainConditionExpression($leftPart $field.conditionProperties.operator $propAlias )
+#if( $field.conditionProperties.required || $field.conditionProperties.valueType == 'constant' )## A-3-2
+#foreach ($i in [0..$indent])    #end${andPart}#sqlPlainConditionExpression( $field $leftPart $propAlias $field.conditionProperties.value )
 #elseif($field.conditionProperties.nullHandle == 'isNull')## A-3-2
 #foreach ($i in [0..$indent])    #end<choose>
 #foreach ($i in [0..$indent])    #end   <when test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$propAlias != null">
-#foreach ($i in [0..$indent])    #end       ${andPart}#sqlPlainConditionExpression($leftPart $field.conditionProperties.operator $propAlias )
+#foreach ($i in [0..$indent])    #end       ${andPart}#sqlPlainConditionExpression( $field $leftPart $propAlias $field.conditionProperties.value )
 #foreach ($i in [0..$indent])    #end   </when>
 #foreach ($i in [0..$indent])    #end   <otherwise>
 #foreach ($i in [0..$indent])    #end       ${andPart}${leftPart} IS NULL
@@ -102,7 +169,7 @@ ${left} = #{$right}#end
 #foreach ($i in [0..$indent])    #end</choose>
 #else## A-3-2
 #foreach ($i in [0..$indent])    #end<if test="#if($nestedProps.size() > 1 )$nestedProps[0] != null and #{end}$propAlias != null">
-#foreach ($i in [0..$indent])    #end    ${andPart}#sqlPlainConditionExpression($leftPart $field.conditionProperties.operator $propAlias )
+#foreach ($i in [0..$indent])    #end    ${andPart}#sqlPlainConditionExpression( $field $leftPart $propAlias $field.conditionProperties.value )
 #foreach ($i in [0..$indent])    #end</if>
 #end## A-3-2
 #end## A-3

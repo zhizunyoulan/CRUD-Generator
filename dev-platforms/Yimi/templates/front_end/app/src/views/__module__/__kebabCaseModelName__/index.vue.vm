@@ -52,14 +52,20 @@ export default {
 #end## A
 }
 </script>
+#set( $variableConditionFields = [] )
+#foreach ($field in $readDefinition.conditionFields)## A
+#if($field.conditionProperties.valueType == 'variable')## A-1
+#if($variableConditionFields.add($field))#end
+#end## A-1
+#end## A
 #set( $conditionFields = $readDefinition.conditionFields )
 <template>
   <ion-page>
     <ion-content :fullscreen="true">
-#if($conditionFields.size() > 0)## A
+#if($variableConditionFields.size() > 0)## A
       <van-dropdown-menu ref="conditionMenuRef">
-#foreach ($field in $conditionFields)## A-1
-#if($field.primaryKey == false && $field.conditionProperties.operator != 'isNull' && $field.conditionProperties.operator != 'isNotNull')## A-1-1
+#foreach ($field in $variableConditionFields)## A-1
+#if($field.conditionProperties.operator != 'isNull' && $field.conditionProperties.operator != 'isNotNull')## A-1-1
 #if($field.conditionProperties.propAlias != $null)## A-1-1-1
 #set( $propAlias = ${field.conditionProperties.propAlias} )
 #else## A-1-1-1
@@ -142,7 +148,7 @@ export default {
       </van-dropdown-menu>
 #end## A
 #set( $listHeight = 0 )
-#if($conditionFields != $null && $conditionFields.size() > 0)## A
+#if( $variableConditionFields.size() > 0 )## A
 #set( $listHeight = $listHeight + 48 )
 #end## A
 #if($createDefinition != $null)## A
@@ -152,20 +158,18 @@ export default {
         ref="listRef"
         :api="() => {
           let params: Record<string, any> = { ...model }
-#foreach ($field in $conditionFields)## A
-#if($field.primaryKey == false)## A-1
-#if($field.conditionProperties.operator == 'between')## A-1-1
-#if($field.conditionProperties.propAlias != $null)## A-1-1-1
+#foreach ($field in $variableConditionFields)## A
+#if($field.conditionProperties.operator == 'between')## A-1
+#if($field.conditionProperties.propAlias != $null)## A-1-1
 #set( $propAlias = ${field.conditionProperties.propAlias} )
-#else## A-1-1-1
+#else## A-1-1
 #set( $propAlias = ${field.property} )
-#end## A-1-1-1
+#end## A-1-1
           if (Array.isArray(params.$propAlias)) {
             params.${propAlias}Start = params.${propAlias}[0]
             params.${propAlias}End = params.${propAlias}[1]
             delete params.$propAlias
           }
-#end## A-1-1
 #end## A-1
 #end## A
           return ${readDefinition.functionName}(params)

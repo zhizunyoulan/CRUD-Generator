@@ -70,7 +70,8 @@
 ## 🔗 相关链接
 
 - [JetBrains Marketplace 发布页面](https://plugins.jetbrains.com/plugin/26463-crud-generator)
-- [问题反馈](https://github.com/zhizunyoulan/CRUD-Generator/issues)
+- [用法介绍](https://medium.com/@zhizunyoulan/an-intellij-idea-code-generation-tool-for-crud-complex-queries-custom-templates-and-variables-d0b6c69ec261)
+- [演示视频(YouTube)](https://youtu.be/KGRnpuScThI)
 
 
 ---

@@ -64,7 +64,8 @@ The following development platforms have ready-to-use template suites available:
 
 ## 🔗 Related Links
 
--   [JetBrains Marketplace Page](https://plugins.jetbrains.com/plugin/26463-crud-generator)
--   [Reporting Issues](https://github.com/zhizunyoulan/CRUD-Generator/issues)
+-  [JetBrains Marketplace Page](https://plugins.jetbrains.com/plugin/26463-crud-generator)
+-  [Introduction Document](https://medium.com/@zhizunyoulan/an-intellij-idea-code-generation-tool-for-crud-complex-queries-custom-templates-and-variables-d0b6c69ec261)
+-  [Demo video on YouTube](https://youtu.be/KGRnpuScThI)
 
 ---

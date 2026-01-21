@@ -2,7 +2,7 @@
 <script setup lang="ts">
 #set($functions = [])
 #if($readDefinition != $null)## A
-#if($functions.add(${readDefinition.api.functionName}))#end
+#if($functions.add(${readDefinition.functionName}))#end
 #end## A
 #if($createDefinition != $null)## A
 #if($functions.add(${createDefinition.functionName}))#end

@@ -13,8 +13,8 @@ export type ${mainModel.modelName} = {
 
 #set($functions = [])
 #if($readDefinition != $null)## A
-#if($functions.add(${readDefinition.api.functionName}))#end
-const ${readDefinition.api.functionName} = {
+#if($functions.add(${readDefinition.functionName}))#end
+const ${readDefinition.functionName} = {
   url: '/${mainModel.kebabCaseModelName}',
   method: 'GET',
 }

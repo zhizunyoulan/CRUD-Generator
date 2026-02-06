@@ -50,8 +50,8 @@ The following development platforms have ready-to-use template suites available:
 - **Description**: Full-stack templates specifically designed for the Yimi Framework ecosystem, including optimized controllers, services, and frontend components.
 - **Features**: MyBatis integration, Vue 3 frontend, admin management templates
 
-### [🔄 JHipster](#)
-- **Status**: 🔄 In Preparation
+### [🔄 JHipster](https://github.com/zhizunyoulan/yimi-templates-jhipster.git)
+- **Status**: 🔄 In development
 - **Description**: Template suite for JHipster-based projects, following JHipster conventions and best practices.
 - **Planned Features**: JPA entity templates, Liquibase migration scripts, Angular/React frontend support
 

@@ -55,8 +55,8 @@
 - **描述**: 专为Yimi框架生态系统设计的全栈模板，包括优化的控制器、服务和前端组件。
 - **特性**: MyBatis集成, Vue 3前端, 后台管理模板
 
-### [🔄 JHipster](#)
-- **状态**: 🔄 准备中
+### [🔄 JHipster](https://github.com/zhizunyoulan/yimi-templates-jhipster.git)
+- **状态**: 🔄 开发中
 - **描述**: 用于JHipster项目的模板套件，遵循JHipster的约定和最佳实践。
 - **计划特性**: JPA实体模板, Liquibase迁移脚本, Angular/React前端支持
 

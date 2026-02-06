@@ -1,0 +1,3 @@
+[submodule "dev-platforms/Jhipster"]
+	path = dev-platforms/Jhipster
+	url = https://github.com/zhizunyoulan/yimi-templates-jhipster.git

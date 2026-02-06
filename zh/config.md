@@ -66,11 +66,12 @@
 条件表达式，控制模板是否生成。当返回 `false` 时，对应的模板文件不会生成。
 
 **可用变量：**
-- `multiKey`: 主实体是否有多个主键
+- `multiPrimaryKey`: 主实体是否有多个主键
 - `enableRead`: 是否启用查询功能
 - `enableCreate`: 是否启用新增功能
 - `enableUpdate`: 是否启用修改功能
 - `enableDelete`: 是否启用删除功能
+- `resultClassType`: 在JPA框架，查询结果类型，包含`Entity`、`DTO`、`Interface`、`Record`
 
 **示例：**
 ```xml

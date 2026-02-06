@@ -67,11 +67,12 @@ Path for the generated target file:
 Conditional expression that controls whether the template is generated. When returns `false`, the corresponding template file will not be generated.
 
 **Available Variables:**
-- `multiKey`: Whether the main entity has multiple primary keys
+- `multiPrimaryKey`: Whether the main entity has multiple primary keys
 - `enableRead`: Whether query functionality is enabled
 - `enableCreate`: Whether create functionality is enabled
 - `enableUpdate`: Whether update functionality is enabled
 - `enableDelete`: Whether delete functionality is enabled
+- `resultClassType`: In the JPA framework, query result types include `Entity`,`DTO`,`Interface`,`Record`
 
 **Examples:**
 ```xml
